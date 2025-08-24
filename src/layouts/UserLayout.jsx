@@ -19,8 +19,9 @@ export default function UserLayout() {
     {
       title: '기준 정보 관리',
       items: [
-        { name: '공정 정보관리', path: '/standard' },
+        { name: '공정 정보관리', path: '/process-management' },
         { name: '작업자 관리', path: '/standard2' },
+        { name: '작업장 관리', path: '/workcenter-management' },
         { name: '자재 조회', path: '/' },
         { name: 'BOM 조회', path: '/' },
       ],
@@ -28,8 +29,8 @@ export default function UserLayout() {
     {
       title: '생산관리',
       items: [
-        { name: '생산계획 조회', path: '/' },
-        { name: '작업지시 조회', path: '/' },
+        { name: '생산계획 조회', path: '/processplan-management' },
+        { name: '작업지시 조회', path: '/workorder-management' },
         { name: '생산진행 현황', path: '/' },
       ],
     },
@@ -37,7 +38,7 @@ export default function UserLayout() {
       title: '공정관리',
       items: [
         { name: '공정 계획 관리', path: '/' },
-        { name: '자작업지시 선택/변경', path: '/' }, 
+        { name: '작업지시 선택/변경', path: '/' }, 
         { name: '작업 시작/종료', path: '/' },
         { name: '실적 등록', path: '/' },
       ],

@@ -1,8 +1,12 @@
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import UserLayout from './layouts/UserLayout';
-import Standard from './pages/Standard';
+// import Standard from './pages/ProcessManagement.jsx';
 import Test from './pages/Test';
 import Standard2 from './pages/Standard2';
+import WorkcenterManagement from './pages/WorkcenterManagement.jsx';
+import ProcessManagement from './pages/ProcessManagement.jsx';
+import ProcessPlanManagement from './pages/ProcessPlanManagement.jsx';
+import WorkOderManagement from './pages/WorkOderManagement.jsx';
 
 function App() {
   const navigate = useNavigate();
@@ -22,22 +26,23 @@ function App() {
       </div>
 
       {/* 본문 영역 */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* 좌측 메뉴영역 */}
-        <div className="w-64 bg-gray-100 border border-gray-400 p-4">
+        <div className="w-64 bg-gray-100 border border-gray-400 p-4 overflow-y-auto">
           <UserLayout />
         </div>
 
         {/* 우측 라우팅된 콘텐츠영역 */}
-        <div className="flex-1 bg-white border border-green-400 p-6 overflow-auto">
+        <div className="flex-1 bg-white border border-green-400 p-6 overflow-y-auto">
           <Routes>
-            <Route path="/" element={<Test />}>
-              <Route path="standard" element={<Standard />} />
-              <Route path="standard2" element={<Standard2 />} />
-            </Route>
-            <Route>
-
-            </Route>
+            {/* 각 경로에 해당하는 페이지만 보여주도록 규칙을 수정합니다. */}
+            <Route path="/" element={<Test />} />
+            {/* <Route path="/standard" element={<Standard />} /> */}
+            <Route path="/standard2" element={<Standard2 />} />
+            <Route path="/workcenter-management" element={<WorkcenterManagement />} />
+            <Route path="/process-management" element={<ProcessManagement />} />
+            <Route path="/processplan-management" element={<ProcessPlanManagement />} />
+            <Route path="/workorder-management" element={<WorkOderManagement />} />
           </Routes>
         </div>
       </div>
