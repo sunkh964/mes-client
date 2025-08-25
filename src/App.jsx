@@ -12,6 +12,7 @@ import MaterialOutput from './pages/MaterialOutput.jsx';
 import MaterialInventory from './pages/MaterialInventory.jsx';
 import WorkResultLogging from './pages/WorkResultLogging.jsx';
 import WorkOrderInquiry from './pages/WorkOrderInquiry.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 
 function App() {
   const navigate = useNavigate();
@@ -53,6 +54,7 @@ function App() {
             <Route path="/material-inventory" element={<MaterialInventory />} />
             <Route path="/work-results-log" element={<WorkResultLogging />} />
             <Route path="/work-orders" element={<WorkOrderInquiry />} />
+            <Route path="/dashboard" element={<Dashboard />} /> 
           </Routes>
         </div>
       </div>

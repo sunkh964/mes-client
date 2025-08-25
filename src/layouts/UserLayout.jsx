@@ -31,7 +31,7 @@ export default function UserLayout() {
       items: [
         { name: '생산계획 조회', path: '/processplan-management' },
         { name: '작업지시 조회', path: '/workorder-management' },
-        { name: '생산진행 현황', path: '/' },
+        { name: '생산진행 현황', path: '/dashboard' },
       ],
     },
     {
