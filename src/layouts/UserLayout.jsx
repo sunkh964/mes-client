@@ -1,91 +1,71 @@
 import { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import routeConfig from "../config/routeConfig";
 
 export default function UserLayout() {
   const navigate = useNavigate();
-  const [openMenu, setOpenMenu] = useState(null); //현재 열려 있는 메뉴 제목
+  const [openMenus, setOpenMenus] = useState([]);
 
-  const handleMenuClick = (menuTitle) => {
-    // 클릭 시 같은 메뉴면 닫고, 아니면 열기
-    setOpenMenu((prev) => (prev === menuTitle ? null : menuTitle));
-  };
+  const handleMenuClick = (menuTitle, path) => {
+    const isOpen = openMenus.includes(menuTitle);
+    if (isOpen) {
+      setOpenMenus(openMenus.filter((title) => title !== menuTitle));
+    } else {
+      setOpenMenus([...openMenus, menuTitle]);
+    }
 
-  const handleNavigation = (path) => {
     navigate(path);
-    setOpenMenu(null); // 이동 후 드롭다운 닫기 
   };
 
-  const menus = [
-    {
-      title: '기준 정보 관리',
-      items: [
-        { name: '공정 정보관리', path: '/process-management' },
-        { name: '작업자 관리', path: '/standard2' },
-        { name: '작업장 관리', path: '/workcenter-management' },
-        { name: '자재 조회', path: '/' },
-        { name: 'BOM 조회', path: '/' },
-      ],
-    },
-    {
-      title: '생산관리',
-      items: [
-        { name: '생산계획 조회', path: '/processplan-management' },
-        { name: '작업지시 조회', path: '/workorder-management' },
-        { name: '생산진행 현황', path: '/' },
-      ],
-    },
-    {
-      title: '공정관리',
-      items: [
-        { name: '공정 계획 관리', path: '/' },
-        { name: '작업지시 선택/변경', path: '/' }, 
-        { name: '작업 시작/종료', path: '/' },
-        { name: '실적 등록', path: '/' },
-      ],
-    },
-    {
-      title: '자재관리',
-      items: [
-        { name: '자재 투입 등록', path: '/' },
-        { name: '자재 산출 등록', path: '/' }, 
-        { name: '자재 재고 현황', path: '/' },
-      ],
-    },
-    {
-      title: '설비관리',
-      items: [
-        { name: '설비어쩌구', path: '/' },
-        { name: '섧비저쩌구', path: '/' },
-      ],
-    },
-  ];
+  return (
+    <div className="bg-gray-200 flex flex-col h-full">
+      {/* 상단 인사말 */}
+      <div
+        className="px-8 pt-7 pb-2 font-semibold text-gray-600 select-none flex items-end justify-end"
+        style={{ fontSize: "0.875rem" }}
+      >
+        {} 님 반갑습니다.
+      </div>
 
-   return (
-    <div>
-      <ul className="space-y-4">
-        {menus.map((menu, index) => (
-          <li key={index}>
-            <div
-              className="font-semibold text-blue-800 cursor-pointer hover:underline"
-              onClick={() => handleMenuClick(menu.title)}
-            >
-              {menu.title}
-            </div>
-            {openMenu === menu.title && (
-              <ul className="ml-4 mt-2 border-l border-gray-300 pl-2 space-y-1">
-                {menu.items.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="text-sm text-gray-700 cursor-pointer hover:text-blue-600"
-                    onClick={() => navigate(item.path)}>
-                    - {item.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
-      </ul>
+      {/* 메뉴 리스트 영역 */}
+      <div className="flex-1 pl-2 pr-2 py-0 overflow-hidden">
+        <ul
+          className="h-full max-h-full px-5 py-6 space-y-6 border border-gray-300 bg-gray-200 overflow-auto"
+          style={{ 
+            boxShadow: "0px 5px 8px rgba(0, 0, 0, 0.5)",
+            maxHeight: '100%', //스크롤바 적용시 필요
+          }}
+        >
+          {routeConfig.map((menu, index) => (
+            <li key={index}>
+              <div
+                className="font-semibold text-gray-900 cursor-pointer hover:underline select-none"
+                onClick={() => handleMenuClick(menu.title, menu.path)}
+              >
+                {menu.title}
+              </div>
+
+              {openMenus.includes(menu.title) && menu.items.length > 0 && (
+                <ul className="ml-4 mt-2 border-l border-gray-400 pl-4 space-y-1">
+                  {menu.items.map((item, idx) => (
+                    <li
+                      key={idx}
+                      className="text-sm text-gray-700 cursor-pointer hover:text-blue-600 select-none"
+                      onClick={() => navigate(item.path)}
+                    >
+                      - {item.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {index !== routeConfig.length - 1 && (
+                <hr className="my-4 border-gray-300" />
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

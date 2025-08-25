@@ -1,53 +1,45 @@
-import { Route, Routes, useNavigate } from 'react-router-dom';
-import UserLayout from './layouts/UserLayout';
-// import Standard from './pages/ProcessManagement.jsx';
-import Test from './pages/Test';
-import Standard2 from './pages/Standard2';
-import WorkcenterManagement from './pages/WorkcenterManagement.jsx';
-import ProcessManagement from './pages/ProcessManagement.jsx';
-import ProcessPlanManagement from './pages/ProcessPlanManagement.jsx';
-import WorkOderManagement from './pages/WorkOderManagement.jsx';
+import { Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./pages/Layout"; // 레이아웃 컴포넌트
+import Test from "./pages/Test";
+import Standard2 from "./pages/Standard2";
+import WorkcenterManagement from "./pages/WorkcenterManagement";
+import ProcessManagement from "./pages/ProcessManagement";
+import ProcessPlanManagement from "./pages/ProcessPlanManagement"; 
+import WorkOderManagement from "./pages/WorkOderManagement";
+import Login from "./pages/Login"; // 로그인은 기본 페이지
+import Monitoring from "./pages/Monitoring";
 
-function App() {
-  const navigate = useNavigate();
-
+export default function App() {
   return (
-    <div className="h-screen flex flex-col">
-      {/* 헤더 */}
-      <div className="bg-blue-200 border border-blue-500 p-4 flex justify-between items-center">
-        <div className="text-sm text-gray-700">상단 우측으로 가야함...</div>
-        <div
-          className="text-xl font-bold text-blue-900 cursor-pointer"
-          onClick={() => navigate('/')}
-        >
-          (주)스팩중공업
-        </div>
-        <div className="text-sm text-gray-600">로그인 버튼 등</div>
-      </div>
+    <Routes>
+      {/* 기본 경로 로그인으로 */}
+      <Route path="/" element={<Login />} />
 
-      {/* 본문 영역 */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* 좌측 메뉴영역 */}
-        <div className="w-64 bg-gray-100 border border-gray-400 p-4 overflow-y-auto">
-          <UserLayout />
-        </div>
+      {/* 나머지 경로들 (Layout 하위 최상위 경로) */}
 
-        {/* 우측 라우팅된 콘텐츠영역 */}
-        <div className="flex-1 bg-white border border-green-400 p-6 overflow-y-auto">
-          <Routes>
-            {/* 각 경로에 해당하는 페이지만 보여주도록 규칙을 수정합니다. */}
-            <Route path="/" element={<Test />} />
-            {/* <Route path="/standard" element={<Standard />} /> */}
-            <Route path="/standard2" element={<Standard2 />} />
-            <Route path="/workcenter-management" element={<WorkcenterManagement />} />
-            <Route path="/process-management" element={<ProcessManagement />} />
-            <Route path="/processplan-management" element={<ProcessPlanManagement />} />
-            <Route path="/workorder-management" element={<WorkOderManagement />} />
-          </Routes>
-        </div>
-      </div>
-    </div>
+      {/* 모니터링 페이지 독립 경로 */}
+      <Route path="/monitoring" element={<Layout />}>
+        <Route path="" element={<Monitoring />} />
+      </Route>
+
+      {/* 공정정보관리 */}
+      <Route path="/main" element={<Layout />}>
+        <Route path="" element={<ProcessManagement />} />
+        <Route path="workcenter-management" element={<WorkcenterManagement />} />
+        <Route path="processplan-management" element={<ProcessPlanManagement />} />
+        <Route path="workorder-management" element={<WorkOderManagement />} />
+      </Route>
+
+      {/* 생산관리 */}
+      <Route path="/produce" element={<Layout />}>
+        <Route path="" element={<Test />} />
+        <Route path="standard2" element={<Standard2 />} />
+      </Route>
+
+
+
+      {/* 잘못된 경로 처리 */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
-
-export default App;
