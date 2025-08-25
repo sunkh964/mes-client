@@ -7,6 +7,11 @@ import WorkcenterManagement from './pages/WorkcenterManagement.jsx';
 import ProcessManagement from './pages/ProcessManagement.jsx';
 import ProcessPlanManagement from './pages/ProcessPlanManagement.jsx';
 import WorkOderManagement from './pages/WorkOderManagement.jsx';
+import MaterialInput from './pages/MaterialInput.jsx';
+import MaterialOutput from './pages/MaterialOutput.jsx';
+import MaterialInventory from './pages/MaterialInventory.jsx';
+import WorkResultLogging from './pages/WorkResultLogging.jsx';
+import WorkOrderInquiry from './pages/WorkOrderInquiry.jsx';
 
 function App() {
   const navigate = useNavigate();
@@ -43,6 +48,11 @@ function App() {
             <Route path="/process-management" element={<ProcessManagement />} />
             <Route path="/processplan-management" element={<ProcessPlanManagement />} />
             <Route path="/workorder-management" element={<WorkOderManagement />} />
+            <Route path="/material-input" element={<MaterialInput />} />
+            <Route path="/material-output" element={<MaterialOutput />} />
+            <Route path="/material-inventory" element={<MaterialInventory />} />
+            <Route path="/work-results-log" element={<WorkResultLogging />} />
+            <Route path="/work-orders" element={<WorkOrderInquiry />} />
           </Routes>
         </div>
       </div>

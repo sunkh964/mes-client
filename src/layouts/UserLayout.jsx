@@ -39,16 +39,16 @@ export default function UserLayout() {
       items: [
         { name: '공정 계획 관리', path: '/' },
         { name: '작업지시 선택/변경', path: '/' }, 
-        { name: '작업 시작/종료', path: '/' },
-        { name: '실적 등록', path: '/' },
+        { name: '작업 시작/종료', path: '/work-orders' },
+        { name: '실적 등록', path: '/work-results-log' },
       ],
     },
     {
       title: '자재관리',
       items: [
-        { name: '자재 투입 등록', path: '/' },
-        { name: '자재 산출 등록', path: '/' }, 
-        { name: '자재 재고 현황', path: '/' },
+        { name: '자재 투입 등록', path: '/material-input' },
+        { name: '자재 산출 등록', path: '/material-output' }, 
+        { name: '자재 재고 현황', path: '/material-inventory' },
       ],
     },
     {
