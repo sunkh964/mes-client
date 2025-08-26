@@ -1,20 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import routeConfig from "../config/routeConfig";
+import routeConfig from "../config/routeConfig"; // 설정 파일 import
 
 export default function UserLayout() {
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState([]);
 
-  const handleMenuClick = (menuTitle, path) => {
+  // ✨ handleMenuClick 로직 수정
+  const handleMenuClick = (menu) => {
+    const menuTitle = menu.title;
     const isOpen = openMenus.includes(menuTitle);
+
+    // 메뉴 열고 닫기 로직
     if (isOpen) {
       setOpenMenus(openMenus.filter((title) => title !== menuTitle));
     } else {
       setOpenMenus([...openMenus, menuTitle]);
     }
 
-    navigate(path);
+    // 하위 메뉴가 있을 경우, 첫 번째 하위 메뉴의 경로로 이동
+    if (menu.items && menu.items.length > 0) {
+      navigate(menu.items[0].path);
+    }
   };
 
   return (
@@ -33,14 +40,15 @@ export default function UserLayout() {
           className="h-full max-h-full px-5 py-6 space-y-6 border border-gray-300 bg-gray-200 overflow-auto"
           style={{ 
             boxShadow: "0px 5px 8px rgba(0, 0, 0, 0.5)",
-            maxHeight: '100%', //스크롤바 적용시 필요
+            maxHeight: '100%',
           }}
         >
           {routeConfig.map((menu, index) => (
             <li key={index}>
               <div
                 className="font-semibold text-gray-900 cursor-pointer hover:underline select-none"
-                onClick={() => handleMenuClick(menu.title, menu.path)}
+                // ✨ onClick 핸들러가 이제 menu 객체 전체를 전달
+                onClick={() => handleMenuClick(menu)}
               >
                 {menu.title}
               </div>
