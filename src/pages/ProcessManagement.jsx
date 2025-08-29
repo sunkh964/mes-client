@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getToken } from '../utils/api';
+
 
 export default function ProcessManagement() {
   const [processes, setProcesses] = useState([]);
@@ -7,22 +9,50 @@ export default function ProcessManagement() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchProcesses = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        // 백엔드 Controller에 설정된 /api/processes 경로로 데이터를 요청합니다.
-        const response = await axios.get('http://localhost:8080/api/processes');
-        setProcesses(response.data);
-      } catch (e) {
-        setError(e);
-      } finally {
-        setLoading(false);
-      }
-    };
+     const fetchData = async () => {
+    const token = getToken(); // 로컬 스토리지에서 토큰을 가져옵니다.
 
-    fetchProcesses();
+       if (!token) {
+      // 토큰이 없으면 오류를 설정하고 함수를 종료합니다.
+        setError(new Error("인증 토큰이 없습니다. 로그인 상태를 확인해 주세요."));
+        setLoading(false);
+        return;
+        }
+
+      try {
+        const response = await axios.get('http://localhost:8080/api/processes', {
+          headers: {
+          Authorization: `Bearer ${token}` // 'Bearer ' 뒤에 공백이 중요합니다.
+          }
+        });
+        setProcesses(response.data);
+      } catch (err) {
+        setError(err);
+        console.error("데이터 로드 실패:", err.response ? err.response.data : err.message);
+      } finally {
+       setLoading(false);
+      }
+      };
+      fetchData();
   }, []);
+
+  // useEffect(() => {
+  //   const fetchProcesses = async () => {
+  //     try {
+  //       setLoading(true);
+  //       setError(null);
+  //       // 백엔드 Controller에 설정된 /api/processes 경로로 데이터를 요청합니다.
+  //       const response = await axios.get('http://localhost:8080/api/processes');
+  //       setProcesses(response.data);
+  //     } catch (e) {
+  //       setError(e);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchProcesses();
+  // }, []);
 
   // 로딩 중일 때 표시될 화면
   if (loading) {

@@ -8,7 +8,7 @@ export default function Layout() {
 
   const getPageTitle = () => {
     const path = location.pathname;
-    const matched = routeConfig.find((route) => path.startsWith(route.path));
+    const matched = routeConfig.find((route) => path.startsWith(route.title));
     return matched?.pageTitle || "";
   };
 
@@ -16,7 +16,7 @@ export default function Layout() {
   
 
   return (
-    <div className="min-h-screen bg-[#2d2d2d] p-8 
+    <div className="min-h-screen bg-[#2d2d2d] p-8
         flex justify-center items-start">
       {/* 내부 콘텐츠 박스: 배경 하얀색, 기존 스타일 유지 */}
       <div className="flex flex-col bg-gray-200 text-[#2f3542] w-full max-w-[1400px] shadow-lg overflow-hidden"
@@ -31,15 +31,15 @@ export default function Layout() {
           {!hideUserLayout && (
             <div className="w-64 bg-gray-200 h-full"> 
             {/* border-r border-[#bdc3c7] */}
-              <UserLayout />
+              <UserLayout/>
             </div>
           )}
 
           {/* 우측 메인 콘텐츠 - 좌측 메뉴가 없으면 full width */}
           <div
-            className={`flex-1 flex flex-col bg-white ${
+            className={`flex-1 flex flex-col bg-white ml-2 mr-3 ${
               hideUserLayout ? "w-full" : ""
-            }`}
+            }`} 
           >
             {/* 클릭한 페이지의 메인 타이틀 */}
             {!hideUserLayout && (
@@ -51,7 +51,12 @@ export default function Layout() {
             )}
 
             {/* 실제 내용 영역 */}
-            <main className="flex-1 p-6 overflow-auto bg-[#ffffff]">
+            <main className="flex-1 p-6 overflow-auto bg-[#ffffff]"
+                  style={{ 
+                  boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.4)",
+                  maxHeight: '100%', //스크롤바 적용시 필요
+                }}
+            >
               <Outlet />
             </main>
           </div>

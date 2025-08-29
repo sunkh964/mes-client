@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { getToken } from '../utils/api';
 
 // 통계 카드를 위한 간단한 컴포넌트
 const StatCard = ({ title, value, color }) => (
@@ -16,18 +17,32 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+     const fetchData = async () => {
+      const token = getToken(); // 로컬 스토리지에서 토큰을 가져옵니다.
+
+       if (!token) {
+      // 토큰이 없으면 오류를 설정하고 함수를 종료합니다.
+        setError(new Error("인증 토큰이 없습니다. 로그인 상태를 확인해 주세요."));
+        setLoading(false);
+        return;
+        }
+
       try {
-        const response = await axios.get('http://localhost:8080/api/dashboard/summary');
+        const response = await axios.get('http://localhost:8080/api/dashboard/summary', {
+          headers: {
+          Authorization: `Bearer ${token}` // 'Bearer ' 뒤에 공백이 중요합니다.
+          }
+        });
         setSummary(response.data);
       } catch (err) {
         setError(err);
+        console.error("데이터 로드 실패:", err.response ? err.response.data : err.message);
       } finally {
-        setLoading(false);
+       setLoading(false);
       }
-    };
-    fetchData();
-  }, []);
+      };
+      fetchData();
+  }, []);
 
   if (loading) return <div className="p-8 text-center">대시보드 데이터를 불러오는 중입니다...</div>;
   if (error) return <div className="p-8 text-center text-red-500">데이터 로드 실패: {error.message}</div>;

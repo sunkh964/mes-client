@@ -1,15 +1,49 @@
 import { useState } from "react";
 import logo from "../images/logo.png";
+import axios from "axios"; // axios 임포트 추가
+import { useNavigate } from "react-router-dom";
+import { setToken } from "../utils/api";
 
-export default function Login() {
-  const [id, setId] = useState("");
+export default function Login({onLogin}) {
+  const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("입력된 아이디:", id);
-    console.log("입력된 비밀번호:", password);
-    alert("아직.");
+    
+    // 백엔드 API의 URL
+    const API_URL = "http://localhost:8080/api/auth/login";
+
+    try {
+      // 백엔드에 POST 요청 보내기
+      const response = await axios.post(API_URL, {
+        employeeId, 
+        password,
+      });
+
+      console.log("로그인 성공:", response.data);
+
+      const { token, employeeId: loggedInEmployeeId, role } = response.data;
+
+      // 로컬 스토리지에 토큰, employeeId, role 저장
+      setToken(token);
+      localStorage.setItem('employeeId', loggedInEmployeeId);
+      localStorage.setItem('role', role);
+
+      // onLogin 함수를 호출하여 App.jsx에 토큰, employeeId, role 정보 전달
+      onLogin(token);
+      
+
+      alert("로그인에 성공했습니다!");
+
+      // 로그인 성공 후 페이지 이동 로직 
+      navigate("/");
+
+    } catch (error) {
+      console.error("로그인 실패:", error.response ? error.response.data : error.message);
+      alert("로그인에 실패했습니다. 사원ID와 비밀번호를 확인해주세요.");
+    }
   };
 
   return (
@@ -36,8 +70,8 @@ export default function Login() {
               <label className="block text-[#ccc] text-sm font-semibold mb-2">작업자 ID</label>
               <input
                 type="text"
-                value={id}
-                onChange={(e) => setId(e.target.value)}
+                value={employeeId} 
+                onChange={(e) => setEmployeeId(e.target.value)} 
                 placeholder="you1001"
                 required
                 className="w-full px-4 py-2 bg-[#333] text-white placeholder-[#888] border border-gray-400 focus:outline-none focus:ring-1 focus:ring-[#555]"

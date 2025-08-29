@@ -14,7 +14,7 @@ const routesConfig = [
   },
   {
     title: "생산관리",
-    // path: "/produce/processplan-management",  <-- 이 줄을 제거
+    path: "produce/processplan-management", 
     pageTitle: "생산 관리",
     items: [
       { name: "생산계획 조회", path: "/" },
