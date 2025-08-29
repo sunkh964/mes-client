@@ -1,12 +1,11 @@
 import { Outlet } from "react-router-dom";
 
-export default function Test(){
+export default function Monitoring(){
 
 
     return(
         <div>
-            테스트
-            <Outlet />
+            모니터링 화면쓰
         </div>
     )
 

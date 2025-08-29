@@ -1,65 +1,63 @@
-import { Route, Routes, useNavigate } from 'react-router-dom';
-import UserLayout from './layouts/UserLayout';
-// import Standard from './pages/ProcessManagement.jsx';
-import Test from './pages/Test';
-import Standard2 from './pages/Standard2';
-import WorkcenterManagement from './pages/WorkcenterManagement.jsx';
-import ProcessManagement from './pages/ProcessManagement.jsx';
-import ProcessPlanManagement from './pages/ProcessPlanManagement.jsx';
-import WorkOderManagement from './pages/WorkOderManagement.jsx';
-import MaterialInput from './pages/MaterialInput.jsx';
-import MaterialOutput from './pages/MaterialOutput.jsx';
-import MaterialInventory from './pages/MaterialInventory.jsx';
-import WorkResultLogging from './pages/WorkResultLogging.jsx';
-import WorkOrderInquiry from './pages/WorkOrderInquiry.jsx';
-import Dashboard from './pages/Dashboard.jsx';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./pages/Layout";
+import Login from "./pages/Login";
+import Dashboard from './pages/Dashboard';
 
-function App() {
-  const navigate = useNavigate();
+// 페이지 컴포넌트 import
+import ProcessManagement from "./pages/ProcessManagement";
+import WorkcenterManagement from "./pages/WorkcenterManagement";
+import EquipmentManagement from './pages/EquipmentManagement';
+import ProcessPlanInquiry from "./pages/ProcessPlanManagement";
+import WorkOrderInquiry from "./pages/WorkOrderInquiry";
+import WorkResultLogging from './pages/WorkResultLogging';
+import MaterialInput from './pages/MaterialInput';
+import MaterialOutput from './pages/MaterialOutput';
+import MaterialInventory from './pages/MaterialInventory';
+import QualityControl from './pages/QualityControl';
+import DefectReport from './pages/DefectReport';
+// Monitoring 페이지도 필요하다면 import 해주세요.
+// import Monitoring from "./pages/Monitoring";
 
+export default function App() {
   return (
-    <div className="h-screen flex flex-col">
-      {/* 헤더 */}
-      <div className="bg-blue-200 border border-blue-500 p-4 flex justify-between items-center">
-        <div className="text-sm text-gray-700">상단 우측으로 가야함...</div>
-        <div
-          className="text-xl font-bold text-blue-900 cursor-pointer"
-          onClick={() => navigate('/')}
-        >
-          (주)스팩중공업
-        </div>
-        <div className="text-sm text-gray-600">로그인 버튼 등</div>
-      </div>
+    
+      <Routes>
+        {/* 로그인 페이지는 Layout과 별개로 작동합니다. */}
+        <Route path="/login" element={<Login />} />
 
-      {/* 본문 영역 */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* 좌측 메뉴영역 */}
-        <div className="w-64 bg-gray-100 border border-gray-400 p-4 overflow-y-auto">
-          <UserLayout />
-        </div>
+        {/* Layout(헤더, 사이드바)을 사용하는 모든 페이지들의 부모 라우트 */}
+        <Route path="/" element={<Layout />}>
+          
+          {/* '/' 경로로 접속했을 때 보여줄 기본 페이지 */}
+          <Route index element={<Dashboard />} />
+          
+          {/* 기준 정보 관리 */}
+          <Route path="master-data/work-centers" element={<WorkcenterManagement />} />
+          <Route path="master-data/processes" element={<ProcessManagement />} />
+          <Route path="master-data/equipment" element={<EquipmentManagement />} />
 
-        {/* 우측 라우팅된 콘텐츠영역 */}
-        <div className="flex-1 bg-white border border-green-400 p-6 overflow-y-auto">
-          <Routes>
-            {/* 각 경로에 해당하는 페이지만 보여주도록 규칙을 수정합니다. */}
-            <Route path="/" element={<Test />} />
-            {/* <Route path="/standard" element={<Standard />} /> */}
-            <Route path="/standard2" element={<Standard2 />} />
-            <Route path="/workcenter-management" element={<WorkcenterManagement />} />
-            <Route path="/process-management" element={<ProcessManagement />} />
-            <Route path="/processplan-management" element={<ProcessPlanManagement />} />
-            <Route path="/workorder-management" element={<WorkOderManagement />} />
-            <Route path="/material-input" element={<MaterialInput />} />
-            <Route path="/material-output" element={<MaterialOutput />} />
-            <Route path="/material-inventory" element={<MaterialInventory />} />
-            <Route path="/work-results-log" element={<WorkResultLogging />} />
-            <Route path="/work-orders" element={<WorkOrderInquiry />} />
-            <Route path="/dashboard" element={<Dashboard />} /> 
-          </Routes>
-        </div>
-      </div>
-    </div>
+          {/* 생산 관리 */}
+          <Route path="production/plans" element={<ProcessPlanInquiry />} />
+          <Route path="production/orders" element={<WorkOrderInquiry />} />
+
+          {/* 공정 관리 */}
+          <Route path="shop-floor/start-stop" element={<WorkOrderInquiry />} />
+          <Route path="shop-floor/results-log" element={<WorkResultLogging />} />
+
+          {/* 자재 관리 */}
+          <Route path="materials/input" element={<MaterialInput />} />
+          <Route path="materials/output" element={<MaterialOutput />} />
+          <Route path="materials/inventory" element={<MaterialInventory />} />
+
+          {/* 품질 관리 */}
+          <Route path="quality/inspection" element={<QualityControl />} />
+          <Route path="quality/defects" element={<DefectReport />} />
+
+        </Route>
+
+        {/* 위에 정의되지 않은 모든 경로는 로그인 페이지로 이동시킵니다. */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    
   );
 }
-
-export default App;
