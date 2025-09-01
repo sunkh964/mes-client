@@ -63,7 +63,8 @@ export default function App() {
   return (
     <Routes>
       {/* 로그인 페이지는 Layout과 분리 */}
-      <Route path="/login" element={isLoggedIn ? <Navigate to="/main/dashboard" replace /> : <Login onLogin={handleLogin} />} />
+      <Route path="/login" element={isLoggedIn ? <Navigate to="/main/process-management" replace /> 
+                                                : <Login onLogin={handleLogin} />} />
 
       {/* Layout을 사용하는 모든 페이지: 로그인 상태가 아니면 로그인 페이지로 리다이렉트 */}
       <Route path="/" element={isLoggedIn 
@@ -71,7 +72,7 @@ export default function App() {
                                : <Navigate to="/login" replace />}>
         
         {/* 웹사이트의 첫 페이지('/')일 때 기본으로 보여줄 페이지 */}
-        <Route index element={<Dashboard />} />
+        <Route index element={<ProcessManagement />} />
         
         {/* 기준 정보 관리 */}
         <Route path="main">

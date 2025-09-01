@@ -52,6 +52,15 @@ const routesConfig = [
       { name: "섧비저쩌구", path: "/" },
     ],
   },
+  {
+    title: "관리관리",
+    // path: "/equipment",  <-- 이 줄을 제거
+    pageTitle: "설비 관리",
+    items: [
+      { name: "설비어쩌구", path: "/" },
+      { name: "섧비저쩌구", path: "/" },
+    ],
+  },
 ];
 
 export default routesConfig;

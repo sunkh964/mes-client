@@ -1,11 +1,12 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from "react-router-dom";
 
-export default function ProtectedRoute({ isAllowed, redirectPath = '/login', children }) {
+export default function ProtectedRoute({ isAllowed, redirectPath = "/login", children }) {
+  const location = useLocation();
+
   if (!isAllowed) {
-    // 허용되지 않으면 지정된 경로(기본 /login)로 리다이렉트
-    return <Navigate to={redirectPath} replace />;
+    // 권한 없으면 로그인 페이지로 리다이렉트, 이전 경로 정보도 전달
+    return <Navigate to={redirectPath} replace state={{ from: location }} />;
   }
 
-  // 허용되면 자식 컴포넌트를 렌더링
   return children;
 }

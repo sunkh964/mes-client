@@ -18,21 +18,9 @@ export default function Dashboard() {
 
   useEffect(() => {
      const fetchData = async () => {
-      const token = getToken(); // 로컬 스토리지에서 토큰을 가져옵니다.
-
-       if (!token) {
-      // 토큰이 없으면 오류를 설정하고 함수를 종료합니다.
-        setError(new Error("인증 토큰이 없습니다. 로그인 상태를 확인해 주세요."));
-        setLoading(false);
-        return;
-        }
 
       try {
-        const response = await axios.get('http://localhost:8080/api/dashboard/summary', {
-          headers: {
-          Authorization: `Bearer ${token}` // 'Bearer ' 뒤에 공백이 중요합니다.
-          }
-        });
+        const response = await axios.get('http://localhost:8080/api/dashboard/summary');
         setSummary(response.data);
       } catch (err) {
         setError(err);

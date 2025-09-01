@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import routeConfig from "../config/routeConfig";
 
-export default function UserLayout() {
+export default function UserLayout({onLogout}) {
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState([]);
   const [role, setRole] = useState("");
@@ -38,15 +38,15 @@ export default function UserLayout() {
     localStorage.removeItem('employeeId');
     localStorage.removeItem('role');
 
-    // App에서 로그인 상태 변경 전달
+    // App 상태 초기화
     onLogout();
 
-    // 로그인 페이지로 이동
-    navigate('/login');
-  };
+    // 확실한 리디렉션 (리액트 라우터가 아닌 브라우저 강제 이동 역할)
+    window.location.href = '/login';
+    };
 
   return (
-    <div className="bg-gray-200 flex flex-col h-full pt-3">      
+    <div className="bg-gray-200 flex flex-col h-full pt-3 ">      
         <div className="flex justify-between items-center pb-2 pl-3 pr-2 pt-2">
           {/* 상단 인사말 */}
           <div

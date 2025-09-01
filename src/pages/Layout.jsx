@@ -1,26 +1,55 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Header from "../layouts/Header";
 import UserLayout from "../layouts/UserLayout";
 import routeConfig from "../config/routeConfig";
+import { getToken } from "../utils/api";
+import { useEffect } from "react";
 
-export default function Layout() {
+export default function Layout({onLogout}) {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // const getPageTitle = () => {
+  //   const path = location.pathname;
+  //   const matched = routeConfig.find((route) => path.startsWith(route.title));
+  //   return matched?.pageTitle || "";
+  // };
 
   const getPageTitle = () => {
     const path = location.pathname;
-    const matched = routeConfig.find((route) => path.startsWith(route.title));
-    return matched?.pageTitle || "";
+
+    // routeConfig를 순회하며 현재 경로와 일치하는 상세 메뉴를 찾습니다.
+    for (const route of routeConfig) {
+      // 상세 메뉴(items) 배열을 순회합니다.
+      const matchedItem = route.items.find((item) => item.path === path);
+      if (matchedItem) {
+        // 일치하는 항목을 찾으면 해당 부모의 pageTitle을 반환합니다.
+        return route.pageTitle;
+      }
+    }
+
+    // 일치하는 항목이 없으면 빈 문자열을 반환합니다.
+    return "";
   };
 
-  const hideUserLayout = location.pathname === "/monitoring";
+  const hideUserLayout = location.pathname === "/main/dashboard";
+
+  // 로그인 토큰 검사 및 리다이렉트 처리
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      // 로그인 페이지로 이동 (현재 페이지 저장 없이)
+      navigate("/login", { replace: true });
+    }
+}, [location.pathname, navigate]);
   
 
   return (
-    <div className="min-h-screen bg-[#2d2d2d] p-8
+    <div className="min-h-screen bg-[#2d2d2d]
         flex justify-center items-start">
       {/* 내부 콘텐츠 박스: 배경 하얀색, 기존 스타일 유지 */}
-      <div className="flex flex-col bg-gray-200 text-[#2f3542] w-full max-w-[1400px] shadow-lg overflow-hidden"
-           style={{ height: '92vh' }}>
+      <div className="flex flex-col bg-gray-200 text-[#2f3542] w-full shadow-lg overflow-hidden"
+           style={{ height: '100vh' }}>
 
         {/* 상단 고정 헤더 */}
         <Header />
@@ -31,7 +60,9 @@ export default function Layout() {
           {!hideUserLayout && (
             <div className="w-64 bg-gray-200 h-full"> 
             {/* border-r border-[#bdc3c7] */}
-              <UserLayout/>
+              <UserLayout
+                onLogout={onLogout}
+              />
             </div>
           )}
 
@@ -45,7 +76,7 @@ export default function Layout() {
             {!hideUserLayout && (
               <div className="bg-gray-200 text-base font-semibold px-2 py-4 "
             //   border-b border-[#bdc3c7]
-                    style={{ color: '#2A5D9F' }}>
+                    style={{ color: '#2A5D9F', fontSize:'1.2rem' }}>
                 ▶ {getPageTitle()}
               </div>
             )}
