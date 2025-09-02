@@ -17,7 +17,8 @@ export default function WorkcenterManagement() {
 
         // 실제 백엔드 API 엔드포인트 호출
         const response = await axios.get('http://localhost:8080/api/work-centers');
-        
+      
+
         // 성공적으로 데이터를 받아오면 workCenters 상태 업데이트
         setWorkCenters(response.data);
 

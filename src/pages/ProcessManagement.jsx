@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getToken } from '../utils/api';
+
 
 export default function ProcessManagement() {
   const [processes, setProcesses] = useState([]);
@@ -7,22 +9,37 @@ export default function ProcessManagement() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchProcesses = async () => {
+     const fetchData = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        // 백엔드 Controller에 설정된 /api/processes 경로로 데이터를 요청합니다.
         const response = await axios.get('http://localhost:8080/api/processes');
         setProcesses(response.data);
-      } catch (e) {
-        setError(e);
+      } catch (err) {
+        setError(err);
+        console.error("데이터 로드 실패:", err.response ? err.response.data : err.message);
       } finally {
-        setLoading(false);
+       setLoading(false);
       }
-    };
-
-    fetchProcesses();
+      };
+      fetchData();
   }, []);
+
+  // useEffect(() => {
+  //   const fetchProcesses = async () => {
+  //     try {
+  //       setLoading(true);
+  //       setError(null);
+  //       // 백엔드 Controller에 설정된 /api/processes 경로로 데이터를 요청합니다.
+  //       const response = await axios.get('http://localhost:8080/api/processes');
+  //       setProcesses(response.data);
+  //     } catch (e) {
+  //       setError(e);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchProcesses();
+  // }, []);
 
   // 로딩 중일 때 표시될 화면
   if (loading) {
