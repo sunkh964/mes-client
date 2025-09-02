@@ -8,7 +8,6 @@ export default function UserLayout({onLogout, openMenus, setOpenMenus }) {
   const [role, setRole] = useState("");
   // 직원 ID 상태 추가
   const [employeeId, setEmployeeId] = useState("");
-
                      
 
   useEffect(() => {
@@ -23,6 +22,7 @@ export default function UserLayout({onLogout, openMenus, setOpenMenus }) {
   }, []);
 
   const handleMenuClick = (menuTitle, path) => {
+  
     // 현재 클릭한 메뉴가 이미 열려있는지 확인
     const isOpen = openMenus.includes(menuTitle);
 

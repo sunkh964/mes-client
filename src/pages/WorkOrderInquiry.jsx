@@ -32,9 +32,8 @@ export default function WorkOrderInquiry() {
       // axios 요청에 params를 추가하여 필터 값을 전달
       const response = await axios.get(API_URL, { params: currentFilters });
       setWorkOrders(response.data);
-    } catch (e) {
-      setError(e);
-    } finally {
+    } catch (e)      {setError(e);}
+     finally {
       setLoading(false);
     }
   };

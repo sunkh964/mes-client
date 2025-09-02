@@ -1,4 +1,3 @@
-
 // App.jsx
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import Layout from "./pages/Layout";
@@ -10,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import ProcessManagement from "./pages/ProcessManagement";
 import WorkcenterManagement from "./pages/WorkcenterManagement";
 import ProcessManagement from "./pages/ProcessManagement";
+import WorkcenterManagement from "./pages/WorkcenterManagement";
 import EquipmentManagement from './pages/EquipmentManagement';
 import ProcessPlanInquiry from "./pages/ProcessPlanManagement";
 import WorkOrderInquiry from "./pages/WorkOrderInquiry";
