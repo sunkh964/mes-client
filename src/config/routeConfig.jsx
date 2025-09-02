@@ -1,8 +1,5 @@
 const routesConfig = [
-  {
-    title: "대시보드",
-    items: [{ name: "공정 운영 현황", path: "/" }],
-  },
+  
   {
     title: "기준 정보 관리",
     items: [
