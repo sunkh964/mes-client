@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import logo from "../images/logo.png";
 import routesConfig from "../config/routeConfig";
 
-export default function Header() {
+export default function Header({openMenus, setOpenMenus}) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMonitoring, setIsMonitoring] = useState(false);
@@ -83,12 +83,12 @@ export default function Header() {
         </div>
 
         {/* 중앙: 빠른 메뉴와 스크롤 버튼 컨테이너 */}
-        <div className="px-2 flex items-center justify-around overflow-hidden">
+        <div className="px-2 flex items-center overflow-hidden">
           {/* 왼쪽 스크롤 버튼 */}
           {showScrollButtons && (
             <button
               onClick={() => handleScroll('left')}
-              className="flex-none px-2 mr-2 text-gray-600 hover:text-[#2A5D9F] focus:outline-none"
+              className="flex-none px-2 mr-2 text-gray-600 hover:text-black focus:outline-none"
               style={{ fontSize: '1.5rem'}}
             >
               {'<'}
@@ -96,7 +96,10 @@ export default function Header() {
           )}
           
           {/* 스크롤 가능한 메뉴 목록 */}
-          <div ref={scrollContainerRef} className="flex-grow flex overflow-x-auto space-x-1 whitespace-nowrap scrollbar-hide">
+          <div ref={scrollContainerRef} 
+                className="flex flex-1 overflow-x-auto gap-x-3 whitespace-nowrap scrollbar-hide
+                          md:gap-x-6 md:whitespace-normal md:overflow-hidden"
+          >
             {routesConfig.map((menu) => (
               <div
                 key={menu.title}
@@ -106,9 +109,17 @@ export default function Header() {
                   ${activeTitle === menu.title ? "bg-white text-gray-900 border-gray-400" : "bg-white text-gray-700 hover:bg-gray-100"}
                 `}
                 onClick={() => {
-                  const firstItemPath = menu.items[0]?.path;
+                  const firstItemPath = menu.path;
                   if (firstItemPath && firstItemPath !== '/') {
                     navigate(firstItemPath);
+                    
+                    //Header의 onClick 이벤트 핸들러
+                    const isOpen = openMenus.includes(menu.title);
+                    if (isOpen) {
+                      setOpenMenus(openMenus.filter((title) => title !== menu.title));
+                    } else {
+                      setOpenMenus([...openMenus, menu.title]);
+                    }
                   }
                 }}
               >
@@ -121,7 +132,7 @@ export default function Header() {
           {showScrollButtons && (
             <button
               onClick={() => handleScroll('right')}
-              className="flex-none px-2 ml-2 text-gray-600 hover:text-[#2A5D9F] focus:outline-none"
+              className="flex-none px-2 ml-2 text-gray-600 hover:text-black focus:outline-none"
               style={{ fontSize: '1.5rem' }}
             >
               {'>'}

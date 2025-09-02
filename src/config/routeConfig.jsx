@@ -2,7 +2,7 @@
 const routesConfig = [
   {
     title: "기준 정보 관리",
-    // path: "/main/dashboard",  <-- 이 줄을 제거
+    path: "/main/process-management",
     pageTitle: "기준 정보 관리",
     items: [
       { name: "공정 정보관리", path: "/main/process-management" },
@@ -14,7 +14,7 @@ const routesConfig = [
   },
   {
     title: "생산관리",
-    path: "produce/processplan-management", 
+    path: "/produce/workorder-management", 
     pageTitle: "생산 관리",
     items: [
       { name: "생산계획 조회", path: "/" },
@@ -24,7 +24,7 @@ const routesConfig = [
   },
   {
     title: "공정관리",
-    // path: "/process/processplan-management",  <-- 이 줄을 제거
+    path: "/produce/processplan-management",
     pageTitle: "공정 관리",
     items: [
       { name: "공정 계획 관리", path: "/produce/processplan-management" },
@@ -35,7 +35,7 @@ const routesConfig = [
   },
   {
     title: "자재관리",
-    // path: "/material/material-input",  <-- 이 줄을 제거
+    path: "/material/material-input", 
     pageTitle: "자재 관리",
     items: [
       { name: "자재 투입 등록", path: "/material/material-input" },

@@ -3,11 +3,14 @@ import Header from "../layouts/Header";
 import UserLayout from "../layouts/UserLayout";
 import routeConfig from "../config/routeConfig";
 import { getToken } from "../utils/api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Layout({onLogout}) {
   const location = useLocation();
   const navigate = useNavigate();
+
+  //열려있는 메뉴를 관리
+  const [openMenus, setOpenMenus] = useState([]);
 
   // const getPageTitle = () => {
   //   const path = location.pathname;
@@ -52,7 +55,7 @@ export default function Layout({onLogout}) {
            style={{ height: '100vh' }}>
 
         {/* 상단 고정 헤더 */}
-        <Header />
+        <Header  openMenus={openMenus} setOpenMenus={setOpenMenus}/>
 
         {/* 본문 전체 */}
         <div className="pb-3 flex flex-1 w-full overflow-hidden h-full">
@@ -62,6 +65,8 @@ export default function Layout({onLogout}) {
             {/* border-r border-[#bdc3c7] */}
               <UserLayout
                 onLogout={onLogout}
+                openMenus={openMenus}
+                setOpenMenus={setOpenMenus}
               />
             </div>
           )}

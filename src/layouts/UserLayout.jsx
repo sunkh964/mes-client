@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import routeConfig from "../config/routeConfig";
 
-export default function UserLayout({onLogout}) {
+export default function UserLayout({onLogout, openMenus, setOpenMenus }) {
   const navigate = useNavigate();
-  const [openMenus, setOpenMenus] = useState([]);
+  //const [openMenus, setOpenMenus] = useState([]);
   const [role, setRole] = useState("");
   // 직원 ID 상태 추가
   const [employeeId, setEmployeeId] = useState("");
+
+                     
 
   useEffect(() => {
     const storedEmployeeId = localStorage.getItem('employeeId');
@@ -21,13 +23,17 @@ export default function UserLayout({onLogout}) {
   }, []);
 
   const handleMenuClick = (menuTitle, path) => {
+    // 현재 클릭한 메뉴가 이미 열려있는지 확인
     const isOpen = openMenus.includes(menuTitle);
+
     if (isOpen) {
+      // 이미 열려있다면 닫기 (배열에서 제거)
       setOpenMenus(openMenus.filter((title) => title !== menuTitle));
     } else {
+      // 닫혀있다면 열기 (배열에 추가)
       setOpenMenus([...openMenus, menuTitle]);
     }
-
+    
     navigate(path);
   };
 

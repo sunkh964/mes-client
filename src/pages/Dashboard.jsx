@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { getToken } from '../utils/api';
 
 // 통계 카드를 위한 간단한 컴포넌트
 const StatCard = ({ title, value, color }) => (
