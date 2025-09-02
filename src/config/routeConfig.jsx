@@ -30,7 +30,7 @@ const routesConfig = [
   },
   {
     title: "자재관리",
-    path: "/materials/material-input", 
+    path: "/materials/input", 
     pageTitle: "자재 관리",
     items: [
       { name: "자재 입고 등록", path: "/materials/input" },

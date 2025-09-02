@@ -8,12 +8,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import ProcessManagement from "./pages/ProcessManagement";
 import WorkcenterManagement from "./pages/WorkcenterManagement";
-import ProcessManagement from "./pages/ProcessManagement";
-import WorkcenterManagement from "./pages/WorkcenterManagement";
 import EquipmentManagement from './pages/EquipmentManagement';
 import ProcessPlanInquiry from "./pages/ProcessPlanManagement";
 import WorkOrderInquiry from "./pages/WorkOrderInquiry";
-import WorkResultLogging from './pages/WorkResultLogging';
 import MaterialInput from './pages/MaterialInput';
 import MaterialOutput from './pages/MaterialOutput';
 import MaterialInventory from './pages/MaterialInventory';
@@ -69,7 +66,7 @@ export default function App() {
   return (
     <Routes>
       {/* 로그인 페이지는 Layout과 분리 */}
-      <Route path="/login" element={isLoggedIn ? <Navigate to="/main/process-management" replace /> 
+      <Route path="/login" element={isLoggedIn ? <Navigate to="/main/processes" replace /> 
                                                 : <Login onLogin={handleLogin} />} />
 
       {/* Layout을 사용하는 모든 페이지: 로그인 상태가 아니면 로그인 페이지로 리다이렉트 */}
