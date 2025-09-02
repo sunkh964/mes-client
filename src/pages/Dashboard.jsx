@@ -16,18 +16,20 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+     const fetchData = async () => {
+
       try {
         const response = await axios.get('http://localhost:8080/api/dashboard/summary');
         setSummary(response.data);
       } catch (err) {
         setError(err);
+        console.error("데이터 로드 실패:", err.response ? err.response.data : err.message);
       } finally {
-        setLoading(false);
+       setLoading(false);
       }
-    };
-    fetchData();
-  }, []);
+      };
+      fetchData();
+  }, []);
 
   if (loading) return <div className="p-8 text-center">대시보드 데이터를 불러오는 중입니다...</div>;
   if (error) return <div className="p-8 text-center text-red-500">데이터 로드 실패: {error.message}</div>;
