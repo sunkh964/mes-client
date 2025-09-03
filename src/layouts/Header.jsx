@@ -6,17 +6,14 @@ import routesConfig from "../config/routeConfig";
 export default function Header({openMenus, setOpenMenus}) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isMonitoring, setIsMonitoring] = useState(false);
   const scrollContainerRef = useRef(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const [isMonitoring, setIsMonitoring] = useState(location.pathname === "/");
 
   useEffect(() => {
-    if (window.location.pathname.startsWith("/main/dashboard")) {
-      setIsMonitoring(true);
-    } else {
-      setIsMonitoring(false);
-    }
+    setIsMonitoring(location.pathname === "/");
   }, [location.pathname]);
+
 
   //화면 너비에 따른 크기 비교
   useEffect(() => {
@@ -39,11 +36,11 @@ export default function Header({openMenus, setOpenMenus}) {
 
   const handleToggle = () => {
     if (isMonitoring) {
-      setIsMonitoring(false);
-      navigate('/main/process-management');
+      // ON -> OFF: 대시보드가 아닌 첫 번째 메뉴로 이동
+      navigate('/main/processes');
     } else {
-      setIsMonitoring(true);
-      navigate('/main/dashboard');
+      // OFF -> ON: 대시보드로 이동
+      navigate('/');
     }
   };
 

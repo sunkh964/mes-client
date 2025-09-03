@@ -8,6 +8,7 @@ const routesConfig = [
       { name: "공정 라우팅 관리", path: "/main/processes" },
       { name: "작업장 관리", path: "/main/work-centers" },
       { name: "설비 관리", path: "/main/equipments" },
+      { name: "작업자 관리", path: "/main/workers" },
     ],
   },
   {
@@ -48,11 +49,10 @@ const routesConfig = [
     ],
   },
   {
-    title: "설비 관리",
-    path: "/equipment/equipment-management", 
-    pageTitle: "설비 관리",
+    title: "출하 관리",
+    path: "/shipping/shipments",
     items: [
-        { name: "설비 관리", path: "/equipment/equipment-management" },
+        { name: "출하 등록 및 조회", path: "/shipping/shipments" },
     ],
   },
 ];
