@@ -25,7 +25,7 @@ export default function App() {
   const [role, setRole] = useState(null);
   const [username, setUsername] = useState(null);
 
-  // 로그인 상태 관리 로직 (기존 코드와 동일)
+  // 로그인 상태 관리 로직 (기존 코드를 그대로 사용합니다)
   useEffect(() => {
     const token = getToken();
     const storedEmployeeId = localStorage.getItem('employeeId');
@@ -60,13 +60,19 @@ export default function App() {
 
   return (
     <Routes>
-      {/* 로그인 페이지 */}
-      <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />} />
+      {/* 로그인 페이지 라우트 */}
+      <Route 
+        path="/login" 
+        element={isLoggedIn ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />} 
+      />
 
       {/* Layout을 사용하는 모든 페이지: 로그인 상태가 아니면 로그인 페이지로 리다이렉트 */}
-      <Route path="/" element={isLoggedIn ? <Layout role={role} onLogout={handleLogout} username={username} /> : <Navigate to="/login" replace />}>
+      <Route 
+        path="/" 
+        element={isLoggedIn ? <Layout role={role} onLogout={handleLogout} username={username} /> : <Navigate to="/login" replace />}
+      >
         
-        {/* ✨ 웹사이트의 첫 페이지('/')일 때 기본으로 보여줄 페이지를 Dashboard로 설정 */}
+        {/* '/' 경로일 때 기본으로 보여줄 페이지 */}
         <Route index element={<Dashboard />} />
         
         {/* 기준 정보 관리 */}
@@ -102,11 +108,10 @@ export default function App() {
           <Route path="defects" element={<DefectReport />} />
         </Route>
 
-        {/* ✨ 출하 관리 (그룹화) */}
+        {/* 출하 관리 */}
         <Route path="shipping">
             <Route path="shipments" element={<ShipmentManagement />} />
         </Route>
-
       </Route>
 
       {/* 정의되지 않은 모든 경로는 로그인 페이지로 이동 */}
