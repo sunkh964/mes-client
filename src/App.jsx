@@ -63,7 +63,7 @@ export default function App() {
       {/* 로그인 페이지 라우트 */}
       <Route 
         path="/login" 
-        element={isLoggedIn ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />} 
+        element={isLoggedIn ? <Navigate to="/main/processes" replace /> : <Login onLogin={handleLogin} />} 
       />
 
       {/* Layout을 사용하는 모든 페이지: 로그인 상태가 아니면 로그인 페이지로 리다이렉트 */}
@@ -72,11 +72,13 @@ export default function App() {
         element={isLoggedIn ? <Layout role={role} onLogout={handleLogout} username={username} /> : <Navigate to="/login" replace />}
       >
         
+        <Route path="dashboard" element={<Dashboard />} />
+
         {/* '/' 경로일 때 기본으로 보여줄 페이지 */}
-        <Route index element={<Dashboard />} />
+        <Route index element={<ProcessManagement  />} />
         
         {/* 기준 정보 관리 */}
-        <Route path="master-data">
+        <Route path="main">
           <Route path="processes" element={<ProcessManagement />} />
           <Route path="work-centers" element={<WorkcenterManagement />} />
           <Route path="equipment" element={<EquipmentManagement />} />
@@ -84,14 +86,14 @@ export default function App() {
         </Route>
         
         {/* 생산 관리 */}
-        <Route path="production">
+        <Route path="produce">
           <Route path="plans" element={<ProcessPlanInquiry />} />
           <Route path="orders" element={<WorkOrderInquiry />} />
         </Route>
         
         {/* 공정 관리 */}
-        <Route path="shop-floor">
-          <Route path="start-stop" element={<WorkOrderInquiry />} />
+        <Route path="process">
+          <Route path="workorders" element={<WorkOrderInquiry />} />
           <Route path="results-log" element={<WorkResultLogging />} />
         </Route>
         

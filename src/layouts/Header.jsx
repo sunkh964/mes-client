@@ -8,12 +8,14 @@ export default function Header({ openMenus, setOpenMenus }) {
   const location = useLocation();
   const scrollContainerRef = useRef(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
-
-  // 토글 상태는 현재 URL이 대시보드('/')인지 여부로 결정
-  const [isMonitoring, setIsMonitoring] = useState(location.pathname === "/");
+  const [isMonitoring, setIsMonitoring] = useState(false);
 
   useEffect(() => {
-    setIsMonitoring(location.pathname === "/");
+    if (window.location.pathname.startsWith("/main/dashboard")) {
+      setIsMonitoring(true);
+    } else {
+      setIsMonitoring(false);
+    }
   }, [location.pathname]);
 
   // 화면 너비에 따른 스크롤 버튼 표시 로직
@@ -31,11 +33,11 @@ export default function Header({ openMenus, setOpenMenus }) {
 
   const handleToggle = () => {
     if (isMonitoring) {
-      // ON -> OFF: 대시보드가 아닌 다른 페이지로 이동 (예: 기준정보 첫 페이지)
-      navigate('/master-data/processes'); 
+      // ON -> OFF: 대시보드가 아닌 기준정보 첫 페이지로 이동
+      navigate('/main/processes');
     } else {
       // OFF -> ON: 대시보드로 이동
-      navigate('/');
+      navigate('/dashboard');
     }
   };
 
