@@ -79,10 +79,27 @@ export default function Layout({onLogout}) {
           >
             {/* 클릭한 페이지의 메인 타이틀 */}
             {!hideUserLayout && (
-              <div className="bg-gray-200 text-base font-semibold px-2 py-4 "
-            //   border-b border-[#bdc3c7]
-                    style={{ color: '#2A5D9F', fontSize:'1.2rem' }}>
-                ▶ {getPageTitle()}
+              <div className="bg-gray-200 px-2 py-3 flex justify-between items-center border-b border-gray-300">
+
+                {/* 왼쪽: 타이틀 */}
+                <div
+                  className="text-[1.25rem] font-semibold text-[#2A5D9F]"
+                >
+                  ▶ {getPageTitle()}
+                </div>
+
+                {/* 오른쪽: 아이콘 버튼 그룹 */}
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center cursor-pointer hover:opacity-80">
+                    <img src="/icons/new.png" alt="신규" className="w-6 h-6 mb-1" />
+                    <span className="text-xs text-gray-600">신규</span>
+                  </div>
+                  <div className="flex flex-col items-center cursor-pointer hover:opacity-80">
+                    <img src="/icons/search.png" alt="조회" className="w-6 h-6 mb-1" />
+                    <span className="text-xs text-center text-gray-600">조회</span>
+                  </div>
+                  {/* ...다른 아이콘들도 동일하게 추가 */}
+                </div>
               </div>
             )}
 

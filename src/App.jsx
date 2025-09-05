@@ -72,13 +72,14 @@ export default function App() {
         element={isLoggedIn ? <Layout role={role} onLogout={handleLogout} username={username} /> : <Navigate to="/login" replace />}
       >
         
-        <Route path="dashboard" element={<Dashboard />} />
+        
 
         {/* '/' 경로일 때 기본으로 보여줄 페이지 */}
         <Route index element={<ProcessManagement  />} />
         
         {/* 기준 정보 관리 */}
         <Route path="main">
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="processes" element={<ProcessManagement />} />
           <Route path="work-centers" element={<WorkcenterManagement />} />
           <Route path="equipment" element={<EquipmentManagement />} />

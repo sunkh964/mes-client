@@ -5,12 +5,14 @@ import routesConfig from "../config/routeConfig";
 
 export default function Header({ openMenus, setOpenMenus }) {
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); // 현재 경로 정보를 가져오는 Hook
   const scrollContainerRef = useRef(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
+
+  
   const [isMonitoring, setIsMonitoring] = useState(false);
 
-  useEffect(() => {
+ useEffect(() => {
     if (window.location.pathname.startsWith("/main/dashboard")) {
       setIsMonitoring(true);
     } else {
@@ -18,7 +20,7 @@ export default function Header({ openMenus, setOpenMenus }) {
     }
   }, [location.pathname]);
 
-  // 화면 너비에 따른 스크롤 버튼 표시 로직
+  // 화면 너비에 따른 스크롤 버튼 표시 로직 (기존 코드 유지)
   useEffect(() => {
     const checkOverflow = () => {
       if (scrollContainerRef.current) {
@@ -31,21 +33,24 @@ export default function Header({ openMenus, setOpenMenus }) {
     return () => window.removeEventListener('resize', checkOverflow);
   }, []);
 
+  // 토글 클릭 시 네비게이션 로직 수정
   const handleToggle = () => {
     if (isMonitoring) {
-      // ON -> OFF: 대시보드가 아닌 기준정보 첫 페이지로 이동
+      // ON -> OFF: 대시보드가 아닌 기준정보 관리의 첫 페이지로 이동
       navigate('/main/processes');
     } else {
       // OFF -> ON: 대시보드로 이동
-      navigate('/dashboard');
+      navigate('/main/dashboard');
     }
   };
 
-  // 현재 활성화된 대분류 메뉴를 찾는 로직
+  // 현재 활성화된 대분류 메뉴를 찾는 로직 수정
   const getActiveMenuTitle = () => {
     // 현재 경로가 '/'이면 '대시보드'를 활성화
-    if (location.pathname === '/') {
-        return "대시보드";
+    if (location.pathname === '/main/dashboard') {
+        // routeConfig에서 '대시보드' title을 찾아 반환
+        const dashboardMenu = routesConfig.find(menu => menu.items.some(item => item.path === '/'));
+        return dashboardMenu ? dashboardMenu.title : "";
     }
     // 다른 경로일 경우, 해당 경로가 속한 대분류를 찾음
     for (const route of routesConfig) {
@@ -86,13 +91,12 @@ export default function Header({ openMenus, setOpenMenus }) {
               <div
                 key={menu.title}
                 className={`flex-none w-28 h-11 flex items-center justify-center text-xs font-semibold border border-gray-300 cursor-pointer transition-colors duration-200 ${activeTitle === menu.title ? "bg-white text-gray-900 border-gray-400" : "bg-white text-gray-700 hover:bg-gray-100"}`}
-                // ✨ routeConfig에 있는 path를 직접 사용하도록 수정
                 onClick={() => {
+                  // routeConfig에 있는 path를 직접 사용
                   if (menu.path) {
                     navigate(menu.path);
-                    
                     if (!openMenus.includes(menu.title)) {
-                      setOpenMenus([menu.title]); // 다른 메뉴는 닫고 현재 메뉴만 열기
+                      setOpenMenus([menu.title]);
                     }
                   }
                 }}
