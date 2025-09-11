@@ -70,18 +70,6 @@ export default function Layout({ onLogout }) {
                 </div>
 
                 {/* 오른쪽: 아이콘 버튼 그룹 */}
-                <div className="flex gap-4">
-                  <div className="flex flex-col items-center cursor-pointer hover:opacity-80">
-                    <img src="/icons/new.png" alt="신규" className="w-6 h-6 mb-1" />
-                    <span className="text-xs text-gray-600">신규</span>
-                  </div>
-                  <div className="flex flex-col items-center cursor-pointer hover:opacity-80">
-                    <img src="/icons/search.png" alt="조회" className="w-6 h-6 mb-1" />
-                    <span className="text-xs text-center text-gray-600">조회</span>
-                  </div>
-                  {/* ...다른 아이콘들도 동일하게 추가 */}
-                </div>
-
                 <div className="flex gap-7 mr-5">
                   <div
                     className="flex flex-col items-center cursor-pointer hover:opacity-80"

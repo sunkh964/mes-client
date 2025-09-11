@@ -83,6 +83,9 @@ export default function ProcessManagement() {
       setLoading(true);
       setError(null);
       const response = await axios.get(API_URL);
+
+      console.log("Server response data:", response.data);
+
       setProcesses(response.data);
     } catch (e) {
       setError(e);
@@ -125,7 +128,7 @@ export default function ProcessManagement() {
 
   const handleEdit = (process) => {
 
-    if (formState.processId === process.processId) return;
+    if (formState.processId === process.processId) return; 
 
     setTempId(null);
     setIsEditing(true);
@@ -181,7 +184,7 @@ export default function ProcessManagement() {
   // 키보드 훅 사용
   useKeyboard(renderProcesses, (selectedProcess) => {
     handleEdit(selectedProcess);
-  });
+  }, formState.processId,'processId');
 
 
   if (loading)
