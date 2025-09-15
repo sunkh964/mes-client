@@ -1,7 +1,7 @@
 // src/pages/ProcessManagement.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useIconContext } from "../utils/IconContext";
+// import { useIconContext } from "../utils/IconContext";
 import useKeyboard from "../hooks/useKeyboard";
 
 const API_URL = "http://localhost:8082/api/processes";
@@ -49,9 +49,11 @@ export default function ProcessManagement() {
 
   // 3. 검색 입력창 값이 바뀔 때마다 searchParams state를 업데이트하는 함수
   const handleSearchChange = (e) => {
+
   const { name, value } = e.target;
   setSearchParams(prev => ({ ...prev, [name]: value }));
 };
+
   
   // 4. 검색 버튼 클릭 시 실행될 함수
   const handleSearch = () => {
@@ -71,11 +73,8 @@ export default function ProcessManagement() {
     };
   }, [searchParams]); // searchParams가 바뀔 때마다 최신 상태를 반영한 함수를 다시 등록
 
-  const getIsActiveLabel = (value) => {
-    if (value === true) return '활성';
-    if (value === false) return '비활성';
-    return '전체';
-  }
+
+  
 
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '90vh' }}>
@@ -90,7 +89,10 @@ export default function ProcessManagement() {
               name="processId"
               value={searchParams.processId}
               onChange={handleSearchChange}
+
               style={{ border: '1px solid black' }}
+
+
             />
           </div>
           <div>
@@ -101,6 +103,7 @@ export default function ProcessManagement() {
               name="processNm"
               value={searchParams.processNm}
               onChange={handleSearchChange}
+
               style={{ border: '1px solid black' }} 
             />
           </div>
@@ -123,6 +126,7 @@ export default function ProcessManagement() {
 
       {/* ==================== 하단: 결과 그리드 ==================== */}
       <div style={{ flex: 1, overflow: 'auto' }}>
+
         {loading ? (
           <div>데이터를 불러오는 중입니다...</div>
         ) : error ? (
