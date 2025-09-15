@@ -13,17 +13,17 @@ const routesConfig = [
   },
   {
     title: "생산관리",
-    path: "/produce/plans", 
+    path: "/produce/blockPlans", 
     pageTitle: "생산 관리",
     items: [
-      { name: "블록 생산 계획", path: "/produce/plans" },
+      { name: "블록 생산 계획", path: "/produce/blockPlans" },
       { name: "작업지시 생성", path: "/produce/workorders" },
     ],
   },
   {
-    title: "공정관리",
+    title: "작업지시 관리",
     path: "/process/workorders",
-    pageTitle: "공정 관리",
+    pageTitle: "작업지시 관리",
     items: [
       { name: "작업 진행/실적 등록", path: "/process/results-log" },
       { name: "진척 현황", path: "/process/dashboard" }, // 루트 수정 필요
