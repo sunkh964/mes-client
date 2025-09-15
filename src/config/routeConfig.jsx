@@ -13,10 +13,10 @@ const routesConfig = [
   },
   {
     title: "생산관리",
-    path: "/produce/plans", 
+    path: "/produce/blockPlans", 
     pageTitle: "생산 관리",
     items: [
-      { name: "블록 생산 계획", path: "/produce/plans" },
+      { name: "블록 생산 계획", path: "/produce/blockPlans" },
       { name: "작업지시 생성", path: "/produce/workorders" },
     ],
   },
