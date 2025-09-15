@@ -6,313 +6,150 @@ import useKeyboard from "../hooks/useKeyboard";
 
 const API_URL = "http://localhost:8082/api/processes";
 
-const formatProcessSequence = (processId) => {
-  const regex = /^PRC(\d+)(?:-([A-Z]))?$/;
-  const match = processId.match(regex);
-
-  if (!match) return processId;
-
-  const mainNumber = parseInt(match[1], 10);
-  const subLetter = match[2];
-
-  if (subLetter) {
-    const subNumber = subLetter.charCodeAt(0) - "A".charCodeAt(0) + 1;
-    return `${mainNumber}-${subNumber}`;
-  } else {
-    return `${mainNumber}`;
-  }
-};
 
 export default function ProcessManagement() {
-  const [processes, setProcesses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  const [processes, setProcesses] = useState([]);  // 공정 목록을 저장할 state (초기값은 빈 배열)  
+  const [loading, setLoading] = useState(true);    // 데이터를 불러오는 중인지 알려주는 loading state  
+  const [error, setError] = useState(null);        // 3. 에러가 발생했는지 알려주는 error state
 
-  const [formState, setFormState] = useState({
-    processId: "",
-    processName: "",
-    processInfo: "",
-    processSequence: "",
+  // 검색 조건을 저장할 state
+  const [searchParams, setSearchParams] = useState({
+    processId: '',
+    processNm: '',
+    isActive: null, // 체크박스는 true/false/null 세 가지 상태를 가질 수 있습니다.
   });
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [tempId, setTempId] = useState(null);
-
-  // Context 훅으로 setIconHandlers 가져오기
-  const { setIconHandlers } = useIconContext();
-
+   // 페이지가 처음 로드될 때 전체 목록을 조회합니다.
   useEffect(() => {
     fetchProcesses();
   }, []);
 
-  useEffect(() => {
-    if (tempId) {
-      const tempData = {
-        processId: tempId,
-        processName: "새로운 공정",
-        processInfo: "정보를 입력하세요",
-        processSequence: "",
-      };
-      setFormState(tempData);
-      setIsEditing(false);
-    }
-  }, [tempId]);
-
-  // Context에 아이콘 버튼 핸들러 등록 (컴포넌트 마운트 시 한 번만)
-  useEffect(() => {
-    setIconHandlers({
-      onNew: handleNew,
-      onSearch: fetchProcesses,
-      onSave: handleSubmit,
-      onDelete: () => handleDelete(formState.processId),
-    });
-
-    // Cleanup: 컴포넌트 언마운트 시 핸들러 초기화 (옵션)
-    return () =>
-      setIconHandlers({
-        onNew: null,
-        onSearch: null,
-        onSave: null,
-        onDelete: null,
-      });
-    // formState.processId는 useEffect에 넣지 않는 이유: 무한루프 방지
-  }, [formState.processId]); // formState.processId 변경 시 핸들러 최신화
-
-  const fetchProcesses = async () => {
+  // 데이터를 조건에 맞게 가져오는 함수
+  const fetchProcesses = async (params = {}) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get(API_URL);
-
-      console.log("Server response data:", response.data);
-
+      const queryParams = new URLSearchParams(
+        Object.entries(params).filter(([key, value]) => {
+          if (key === 'isActive') return value !== null; // isActive는 null이 아닐 때만 포함
+          return value !== ''; // 나머지는 빈 문자열이 아닐 때만 포함
+        })
+      ).toString();
+      
+      const fullUrl = `${API_URL}${queryParams ? `?${queryParams}` : ''}`;
+      const response = await axios.get(fullUrl);
       setProcesses(response.data);
     } catch (e) {
       setError(e);
-      console.error(
-        "데이터 로드 실패:",
-        e.response ? e.response.data : e.message
-      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
+  // 3. 검색 입력창 값이 바뀔 때마다 searchParams state를 업데이트하는 함수
+  const handleSearchChange = (e) => {
+  const { name, value } = e.target;
+  setSearchParams(prev => ({ ...prev, [name]: value }));
+};
+  
+  // 4. 검색 버튼 클릭 시 실행될 함수
+  const handleSearch = () => {
+    fetchProcesses(searchParams);
   };
 
-  const handleSubmit = async (e) => {
-    // Layout의 저장 버튼 클릭 시 event 없이 호출되는 경우 대비
-    if (e && e.preventDefault) e.preventDefault();
+  // 5. Context에서 핸들러 등록 함수 가져오기
+  const { setIconHandlers } = useIconContext(); 
 
-    const isNew = !processes.some((p) => p.processId === formState.processId);
+  // 6. onSearch 아이콘 버튼에 handleSearch 함수를 연결합니다.
+  useEffect(() => {
+    setIconHandlers({ onSearch: handleSearch });
+    
+    // 컴포넌트가 사라질 때 등록된 핸들러를 정리(clean-up)합니다.
+    return () => {
+      setIconHandlers({ onSearch: null });
+    };
+  }, [searchParams]); // searchParams가 바뀔 때마다 최신 상태를 반영한 함수를 다시 등록
 
-    const payload = { ...formState };
-
-    try {
-      if (isNew) {
-        await axios.post(API_URL, payload);
-      } else {
-        await axios.put(`${API_URL}/${formState.processId}`, payload);
-      }
-
-      setTempId(null);
-      resetForm();
-      fetchProcesses();
-    } catch (err) {
-      alert(`오류: ${err.response?.data?.message || err.message}`);
-    }
-  };
-
-  const handleEdit = (process) => {
-
-    if (formState.processId === process.processId) return; 
-
-    setTempId(null);
-    setIsEditing(true);
-    setFormState({
-      processId: process.processId,
-      processName: process.processName,
-      processInfo: process.processInfo,
-      processSequence: process.processSequence,
-    });
-  };
-
-  const handleDelete = async (id) => {
-    if (!id) return;
-
-    if (window.confirm(`정말로 이 공정(ID: ${id})을 삭제하시겠습니까?`)) {
-      try {
-        await axios.delete(`${API_URL}/${id}`);
-        resetForm();
-        fetchProcesses();
-      } catch (err) {
-        alert(`삭제 중 오류: ${err.response?.data?.message || err.message}`);
-      }
-    }
-  };
-
-  const resetForm = () => {
-    setIsEditing(false);
-    setFormState({
-      processId: "",
-      processName: "",
-      processInfo: "",
-      processSequence: "",
-    });
-  };
-
-  const handleNew = () => {
-    // 실제로 새 ID 생성 로직 필요 시 수정 가능
-    const newTempId = "PRC0";
-    setTempId(newTempId);
-  };
-
-  // 화면에 보여줄 리스트 (신규 아이템이 있을 때 맨 앞에 추가)
-  const renderProcesses = [...processes];
-  if (tempId) {
-    renderProcesses.unshift({
-      processId: tempId,
-      processName: "새로운 공정",
-      processInfo: "정보를 입력하세요",
-      processSequence: "",
-    });
+  const getIsActiveLabel = (value) => {
+    if (value === true) return '활성';
+    if (value === false) return '비활성';
+    return '전체';
   }
 
-  // 키보드 훅 사용
-  useKeyboard(renderProcesses, (selectedProcess) => {
-    handleEdit(selectedProcess);
-  }, formState,'processId');
-
-
-  if (loading)
-    return <div className="p-8 text-center">공정 정보를 불러오는 중입니다...</div>;
-  if (error)
-    return (
-      <div className="p-8 text-center text-red-500">
-        에러: {error.message}
-      </div>
-    );
-
   return (
-    <>
-      <div className="p-8 flex flex-1 space-x-6 h-full">
-        {/* 왼쪽: 리스트 */}
-        <div className="flex-1 flex flex-col bg-white shadow-md overflow-hidden">
-          <div className="flex justify-between items-center p-4 bg-gray-100 font-bold text-lg border-b border-gray-200">
-            <h2>공정 리스트</h2>
+    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '90vh' }}>
+      {/* ==================== 상단: 검색 그리드 ==================== */}
+      <div style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div>
+            <label htmlFor="processId">공정 ID: </label>
+            <input
+              type="text"
+              id="processId"
+              name="processId"
+              value={searchParams.processId}
+              onChange={handleSearchChange}
+              style={{ border: '1px solid black' }}
+            />
           </div>
-          <div className="flex-1 p-4 overflow-y-auto">
-            <table className="min-w-full leading-normal">
-              <thead>
-                <tr className="bg-gray-100 text-left text-gray-600 uppercase text-xs">
-                  <th className="px-4 py-2">ID</th>
-                  <th className="px-4 py-2">공정명</th>
-                  <th className="px-4 py-2">순서</th>
-                  {/* <th className="px-4 py-2">편집</th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {renderProcesses.map((process) => (
-                  <tr
-                    key={process.processId}
-                    className={`border-b cursor-pointer ${
-                      formState.processId === process.processId
-                        ? "bg-blue-100"
-                        : "hover:bg-gray-100"
-                    }`}
-                    onClick={() => handleEdit(process)}
-                  >
-                    <td className="px-4 py-2">{process.processId}</td>
-                    <td className="px-4 py-2">{process.processName}</td>
-                    <td className="px-4 py-2">
-                      {formatProcessSequence(process.processId)}
-                    </td>
-                    {/* <td className="px-4 py-2 text-center">
-                      <button
-                        className="bg-red-500 hover:bg-red-600 text-white rounded px-2 py-1 text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(process.processId);
-                        }}
-                      >
-                        삭제
-                      </button>
-                    </td> */}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div>
+            <label htmlFor="processNm">공정명: </label>
+            <input
+              type="text"
+              id="processNm"
+              name="processNm"
+              value={searchParams.processNm}
+              onChange={handleSearchChange}
+              style={{ border: '1px solid black' }} 
+            />
           </div>
+          <div>
+          <label htmlFor="isActive">활성 여부: </label>
+          <select
+            id="isActive"
+            name="isActive"
+            value={searchParams.isActive === null ? '' : searchParams.isActive} // null일 경우 빈 문자열('') 값으로 매핑
+            onChange={handleSearchChange}
+            style={{ border: '1px solid black', marginLeft: '5px' }}
+          >
+            <option value="">전체</option>
+            <option value="true">활성</option>
+            <option value="false">비활성</option>
+          </select>
         </div>
-
-{/*======= 오른쪽: 폼 ==========================*/}
-        <div className="flex-1 flex flex-col bg-white shadow-md overflow-hidden">
-          <div className="flex justify-between items-center p-4 bg-gray-100 font-bold text-lg border-b border-gray-200">
-            <h2>공정 상세/속성 정보</h2>
-          </div>
-          <form onSubmit={handleSubmit} className="flex-1 p-4 overflow-y-auto">
-            <div className="mb-4 w-2/3">
-              <label className="block mb-1 font-semibold" htmlFor="processId">
-                공정 ID
-              </label>
-              <input
-                id="processId"
-                name="processId"
-                value={formState.processId}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border"
-                disabled={isEditing}
-                required
-              />
-            </div>
-
-            <div className="mb-4 w-2/3">
-              <label className="block mb-1 font-semibold" htmlFor="processName">
-                공정명
-              </label>
-              <input
-                id="processName"
-                name="processName"
-                value={formState.processName}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border"
-                required
-              />
-            </div>
-
-            <div className="mb-4 w-full">
-              <label className="block mb-1 font-semibold" htmlFor="processInfo">
-                공정 정보
-              </label>
-              <textarea
-                id="processInfo"
-                name="processInfo"
-                value={formState.processInfo}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border"
-                rows={4}
-              />
-            </div>
-
-            <div className="mb-4 w-2/3">
-              <label className="block mb-1 font-semibold" htmlFor="processSequence">
-                공정 순서
-              </label>
-              <input
-                type="text"
-                id="processSequence"
-                name="processSequence"
-                value={formState.processSequence}  // 직접 수정 가능
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border"
-              />
-            </div>
-          </form>
         </div>
       </div>
-    </>
+
+      {/* ==================== 하단: 결과 그리드 ==================== */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {loading ? (
+          <div>데이터를 불러오는 중입니다...</div>
+        ) : error ? (
+          <div>에러가 발생했습니다: {error.message}</div>
+        ) : (
+          <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f2f2f2' }}>
+                <th style={{ padding: '8px' }}>공정 ID</th>
+                <th style={{ padding: '8px' }}>공정명</th>
+                <th style={{ padding: '8px' }}>공정 정보</th>
+                <th style={{ padding: '8px' }}>활성 여부</th>
+              </tr>
+            </thead>
+            <tbody>
+              {processes.map((process) => (
+                <tr key={process.processId}>
+                  <td style={{ padding: '8px' }}>{process.processId}</td>
+                  <td style={{ padding: '8px' }}>{process.processNm}</td>
+                  <td style={{ padding: '8px' }}>{process.processInfo}</td>
+                  <td style={{ padding: '8px' }}>{process.isActive ? "활성" : "비활성"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
   );
 }
