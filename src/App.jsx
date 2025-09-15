@@ -10,7 +10,8 @@ import ProcessManagement from "./pages/ProcessManagement";
 import WorkcenterManagement from "./pages/WorkcenterManagement";
 import EquipmentManagement from './pages/EquipmentManagement';
 import WorkerManagement from './pages/WorkerManagement';
-import ProcessPlanInquiry from "./pages/ProcessPlanManagement";
+import CheckProjectPlan from './pages/CheckProjectPlan';
+
 import WorkOrderInquiry from "./pages/WorkOrderInquiry";
 import WorkResultLogging from './pages/WorkResultLogging';
 import MaterialInput from './pages/MaterialInput';
@@ -84,11 +85,12 @@ export default function App() {
           <Route path="work-centers" element={<WorkcenterManagement />} />
           <Route path="equipment" element={<EquipmentManagement />} />
           <Route path="workers" element={<WorkerManagement />} />
+          <Route path="project-plans" element={<CheckProjectPlan />} />
         </Route>
         
         {/* 생산 관리 */}
         <Route path="produce">
-          <Route path="plans" element={<ProcessPlanInquiry />} />
+          
           <Route path="orders" element={<WorkOrderInquiry />} />
         </Route>
         
