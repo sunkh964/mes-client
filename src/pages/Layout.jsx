@@ -70,7 +70,7 @@ export default function Layout({ onLogout }) {
                 </div>
 
                 {/* 오른쪽: 아이콘 버튼 그룹 */}
-                <div className="flex gap-7 mr-5">
+                <div className="flex gap-7 mr-11">
                   <div
                     className="flex flex-col items-center cursor-pointer hover:opacity-80"
                     onClick={() => onNew && onNew()}

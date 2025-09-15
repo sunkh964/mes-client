@@ -5,104 +5,201 @@ import { useIconContext } from "../utils/IconContext";
 const API_URL = "http://localhost:8082/api/blockPlans";
 
 export default function BlockPlan() {
+    // Tailwind 클래스
+    const blockDetailLabel = "block mb-1 text-sm font-semibold";
+    const detailTextBox = "w-full px-2 py-1 border border-gray-300";
+    const searchInput = "border border-gray-400 px-2 py-1 text-sm";
+
     //목록 저장
     const [blockPlans, setBlockPlans] = useState([]);
 
     const [selectedBlockPlan, setSelectedBlockPlan] = useState(null);
 
-    // Tailwind 클래스
-    const blockDetailLabel = "block mb-1 text-sm font-semibold";
-    const detailTextBox = "w-full px-2 py-1 border border-gray-300";
-
-    const isFieldEditable = () => true; // 또는 조건
-    const updateBlockPlanField = (field, value) => {
-    setSelectedBlockPlan(prev => ({ ...prev, [field]: value }));
+    // 검색 조건 초기값
+    const initialSearchParams = {
+        blockId: "",
+        processId: "",
+        vesselId: "",
+        startDate: "",
+        endDate: "",
+        status: "",
     };
-    
 
-    // 데이터 조회
-    const fetchBlockPlans = async () => {
-        try {
-            const response = await axios.get(API_URL);
-            setBlockPlans(response.data);
-            if (response.data.length > 0) {
-                setSelectedBlockPlan(response.data[0]); // 첫 번째 항목 선택
-            }
-        } catch (err) {
-            console.error("데이터 불러오기 실패:", err);
-            setBlockPlans([]); // 실패 시 빈 배열로 초기화
-            setSelectedBlockPlan(null); // 실패 시 선택도 초기화
-        }
-    };
+    const [searchParams, setSearchParams] = useState(initialSearchParams);
+
+    const { setIconHandlers } = useIconContext();
 
     // 페이지가 처음 로드될 때 전체 목록을 조회합니다.
     useEffect(() => {
         fetchBlockPlans();
     }, []);
 
-    // 선택함수
-    const handleSelectBlockPlan = (blockPlan) => {
-        setSelectedBlockPlan(blockPlan);
-    };
+    // 아이콘 핸들러 등록
+    useEffect(() => {
+        setIconHandlers({ onSearch: handleSearch });
+        return () => {
+        setIconHandlers({ onSearch: null });
+        };
+    }, [searchParams]); // 검색 조건 바뀔 때마다 최신 핸들러 등록
+    
 
-    
-    
+    // 전체 데이터 조회
+  const fetchBlockPlans = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/getAll`);
+      setBlockPlans(response.data);
+      if (response.data.length > 0) {
+        setSelectedBlockPlan(response.data[0]); // 첫 번째 항목 선택
+      }
+    } catch (err) {
+      console.error("데이터 불러오기 실패:", err);
+      setBlockPlans([]);
+      setSelectedBlockPlan(null);
+    }
+  };
+
+  // 검색 실행
+  const handleSearch = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/search`, {
+        params: searchParams,
+      });
+      setBlockPlans(response.data);
+      setSelectedBlockPlan(response.data.length > 0 ? response.data[0] : null);
+    } catch (err) {
+      console.error("검색 실패:", err);
+    }
+  };
+
+  // 검색 조건 초기화
+  const handleReset = () => {
+    setSearchParams(initialSearchParams);
+    fetchBlockPlans();
+  };
+
+  // 검색 조건 변경 핸들러
+  const handleSearchChange = (e) => {
+    const { name, value } = e.target;
+    setSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 선택된 블록 변경
+  const handleSelectBlockPlan = (blockPlan) => {
+    setSelectedBlockPlan(blockPlan);
+  };
+
+  // 필드 수정
+  const isFieldEditable = () => true;
+  const updateBlockPlanField = (field, value) => {
+    setSelectedBlockPlan((prev) => ({ ...prev, [field]: value }));
+  };
 
     return(
-        <div>
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '90vh' }}>
             {/* ==================== 상단: 검색 그리드 ==================== */}
-            <div style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '20px' }}>
-                {/* <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div>
-                    <label htmlFor="processId">공정 ID: </label>
-                    <input
-                    type="text"
-                    id="processId"
-                    name="processId"
-                    value={searchParams.processId}
-                    onChange={handleSearchChange}
+            <div className="border border-gray-300 p-3 mb-5">
+                <div className="flex flex-wrap gap-7">
+                    {/* 1행 */}
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="blockId" className="text-sm font-medium">블록명:</label>
+                        <input
+                            type="text"
+                            id="blockId"
+                            name="blockId"
+                            value={searchParams.blockId}
+                            onChange={handleSearchChange}
+                            className="border border-gray-400 px-2 py-1 text-sm w-32"
+                        />
+                    </div>
 
-                    style={{ border: '1px solid black' }}
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="processId" className="text-sm font-medium">공정명:</label>
+                        <input
+                            type="text"
+                            id="processId"
+                            name="processId"
+                            value={searchParams.processId}
+                            onChange={handleSearchChange}
+                            className="border border-gray-400 px-2 py-1 text-sm w-32"
+                        />
+                    </div>
 
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="vesselId" className="text-sm font-medium">선박명:</label>
+                        <input
+                            type="text"
+                            id="vesselId"
+                            name="vesselId"
+                            value={searchParams.vesselId}
+                            onChange={handleSearchChange}
+                            className="border border-gray-400 px-2 py-1 text-sm w-32"
+                        />
+                    </div>
 
-                    />
+                    {/* 2행 + 초기화 버튼 */}
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="startDate" className="text-sm font-medium">시작일:</label>
+                        <input
+                            type="date"
+                            id="startDate"
+                            name="startDate"
+                            value={searchParams.startDate}
+                            onChange={handleSearchChange}
+                            className="border border-gray-400 px-2 py-1 text-sm w-32"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="endDate" className="text-sm font-medium">종료일:</label>
+                        <input
+                            type="date"
+                            id="endDate"
+                            name="endDate"
+                            value={searchParams.endDate}
+                            onChange={handleSearchChange}
+                            className="border border-gray-400 px-2 py-1 text-sm w-32"
+                        />
+                    </div>
+
+                    {/* 상태  */}
+                    <div className="flex items-end justify-between md:justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                            <label htmlFor="status" className="text-sm font-medium">상태:</label>
+                            <select
+                            id="status"
+                            name="status"
+                            value={searchParams.status}
+                            onChange={handleSearchChange}
+                            className="border border-gray-400 px-2 py-1 text-sm bg-white w-24"
+                            >
+                            <option value="">전체</option>
+                            <option value="0">대기</option>
+                            <option value="1">진행중</option>
+                            <option value="2">완료</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* 우측 끝: 초기화 버튼 */}
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        className="ml-auto mr-3 px-3 py-1 border border-gray-400 bg-slate-500 hover:bg-slate-600 text-sm text-white"
+                    >
+                        초기화
+                    </button>
                 </div>
-                <div>
-                    <label htmlFor="processNm">공정명: </label>
-                    <input
-                    type="text"
-                    id="processNm"
-                    name="processNm"
-                    value={searchParams.processNm}
-                    onChange={handleSearchChange}
-
-                    style={{ border: '1px solid black' }} 
-                    />
-                </div>
-                <div>
-                <label htmlFor="isActive">활성 여부: </label>
-                <select
-                    id="isActive"
-                    name="isActive"
-                    value={searchParams.isActive === null ? '' : searchParams.isActive} // null일 경우 빈 문자열('') 값으로 매핑
-                    onChange={handleSearchChange}
-                    style={{ border: '1px solid black', marginLeft: '5px' }}
-                >
-                    <option value="">전체</option>
-                    <option value="true">활성</option>
-                    <option value="false">비활성</option>
-                </select>
-                </div>
-                </div> */}
             </div>
+
+
 
             {/* ==================== 하단 그리드 ==================== */}
             <div className="flex gap-6">
 
                 {/* 하단-좌측 */}
-                <div className="flex-1 overflow-auto border border-gray-300">
+                <div className="flex-[6] overflow-auto border border-gray-300">
 
-                    <table border="1" style={{ width: '100%', bsorderCollapse: 'collapse' }}>
+                    <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                         <tr style={{ backgroundColor: '#f2f2f2' }}>
                             <th style={{ padding: '8px' }}>블록 생산 ID</th>
@@ -131,7 +228,7 @@ export default function BlockPlan() {
                 </div>
                 
                 {/* 우측: 블록 상세 정보 */}
-                <div className="w-96 border border-gray-300 rounded p-4 overflow-auto">
+                <div className="flex-[4] border border-gray-300 rounded p-4 overflow-auto">
                 <h3 className="text-lg font-semibold mb-4">블록 계획 상세</h3>
 
                 <div className="grid grid-cols-3 gap-6">
