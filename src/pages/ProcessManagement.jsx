@@ -4,7 +4,7 @@ import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
 import useKeyboard from "../hooks/useKeyboard";
 
-const API_URL = "http://localhost:8080/api/processes";
+const API_URL = "http://localhost:8082/api/processes";
 
 const formatProcessSequence = (processId) => {
   const regex = /^PRC(\d+)(?:-([A-Z]))?$/;
@@ -184,7 +184,7 @@ export default function ProcessManagement() {
   // 키보드 훅 사용
   useKeyboard(renderProcesses, (selectedProcess) => {
     handleEdit(selectedProcess);
-  }, formState.processId,'processId');
+  }, formState,'processId');
 
 
   if (loading)

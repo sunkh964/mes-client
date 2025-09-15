@@ -13,7 +13,7 @@ export default function Login({onLogin}) {
     e.preventDefault();
     
     // 백엔드 API의 URL
-    const API_URL = "http://localhost:8080/api/auth/login";
+    const API_URL = "http://localhost:8082/api/auth/login";
 
     try {
       // 백엔드에 POST 요청 보내기

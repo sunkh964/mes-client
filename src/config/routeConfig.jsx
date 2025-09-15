@@ -6,9 +6,9 @@ const routesConfig = [
     pageTitle: "기준 정보 관리",
     items: [
       { name: "공정 라우팅 관리", path: "/main/processes" },
-      { name: "작업장 관리", path: "/main/work-centers" },
-      { name: "설비 관리", path: "/main/equipment" },
-      { name: "작업자 관리", path: "/main/workers" },
+      { name: "작업장/설비 관리", path: "/main/work-centers" }, // 루트 수정 필요
+      { name: "작업자/권한 관리", path: "/main/workers" },
+      { name: "생산계획 조회", path: "/main/processes" },// 루트 수정 필요
     ],
   },
   {
@@ -16,8 +16,8 @@ const routesConfig = [
     path: "/produce/plans", 
     pageTitle: "생산 관리",
     items: [
-      { name: "생산계획 조회", path: "/produce/plans" },
-      { name: "작업지시 관리", path: "/produce/orders" },
+      { name: "블록 생산 계획", path: "/produce/plans" },
+      { name: "작업지시 생성", path: "/produce/workorders" },
     ],
   },
   {
@@ -25,8 +25,8 @@ const routesConfig = [
     path: "/process/workorders",
     pageTitle: "공정 관리",
     items: [
-      { name: "작업지시 조회", path: "/process/workorders" },
-      { name: "실적 등록", path: "/process/results-log" },
+      { name: "작업 진행/실적 등록", path: "/process/results-log" },
+      { name: "진척 현황", path: "/process/dashboard" }, // 루트 수정 필요
     ],
   },
   {
@@ -34,9 +34,7 @@ const routesConfig = [
     path: "/materials/input", 
     pageTitle: "자재 관리",
     items: [
-      { name: "자재 입고 등록", path: "/materials/input" },
-      { name: "자재 출고 등록", path: "/materials/output" },
-      { name: "자재 현황", path: "/materials/inventory" },
+      { name: "자재 사용 등록", path: "/materials/input" }, 
     ],
   },
   {
@@ -44,8 +42,9 @@ const routesConfig = [
     path: "/quality/inspection", 
     pageTitle: "품질 관리",
     items: [
-        { name: "품질 검사", path: "/quality/inspection" },
-        { name: "불량 등록", path: "/quality/defects" },
+        { name: "자재 품질검사", path: "/quality/inspection" }, // 루트 수정 필요
+        { name: "블록 품질검사", path: "/quality/inspection" },
+        { name: "불량 보고", path: "/quality/defects" },
     ],
   },
   {

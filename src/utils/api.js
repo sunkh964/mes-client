@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_BASE = "http://localhost:8080/api/v1";
+export const API_BASE = "http://localhost:8082/api/v1";
 
 export const getToken = () => localStorage.getItem("token");
 // 로컬 스토리지에 토큰 저장
