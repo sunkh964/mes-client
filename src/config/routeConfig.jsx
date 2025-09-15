@@ -21,9 +21,9 @@ const routesConfig = [
     ],
   },
   {
-    title: "공정관리",
+    title: "작업지시 관리",
     path: "/process/workorders",
-    pageTitle: "공정 관리",
+    pageTitle: "작업지시 관리",
     items: [
       { name: "작업 진행/실적 등록", path: "/process/results-log" },
       { name: "진척 현황", path: "/process/dashboard" }, // 루트 수정 필요
