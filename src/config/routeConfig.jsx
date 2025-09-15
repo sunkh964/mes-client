@@ -8,7 +8,7 @@ const routesConfig = [
       { name: "공정 라우팅 관리", path: "/main/processes" },
       { name: "작업장/설비 관리", path: "/main/work-centers" }, // 루트 수정 필요
       { name: "작업자/권한 관리", path: "/main/workers" },
-      { name: "생산계획 조회", path: "/main/processes" },// 루트 수정 필요
+      { name: "생산계획 조회", path: "/main/project-plans" },
     ],
   },
   {
@@ -17,13 +17,14 @@ const routesConfig = [
     pageTitle: "생산 관리",
     items: [
       { name: "블록 생산 계획", path: "/produce/blockPlans" },
+      
       { name: "작업지시 생성", path: "/produce/workorders" },
     ],
   },
   {
-    title: "작업지시 관리",
+    title: "공정관리",
     path: "/process/workorders",
-    pageTitle: "작업지시 관리",
+    pageTitle: "공정 관리",
     items: [
       { name: "작업 진행/실적 등록", path: "/process/results-log" },
       { name: "진척 현황", path: "/process/dashboard" }, // 루트 수정 필요

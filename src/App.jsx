@@ -10,6 +10,8 @@ import ProcessManagement from "./pages/ProcessManagement";
 import WorkcenterManagement from "./pages/WorkcenterManagement";
 import EquipmentManagement from './pages/EquipmentManagement';
 import ProcessPlanInquiry from "./pages/ProcessPlanManagement";
+import WorkerManagement from './pages/WorkerManagement';
+import CheckProjectPlan from './pages/CheckProjectPlan';
 import WorkOrderInquiry from "./pages/WorkOrderInquiry";
 import MaterialInput from './pages/MaterialInput';
 import MaterialOutput from './pages/MaterialOutput';
@@ -83,15 +85,21 @@ export default function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="processes" element={<ProcessManagement />} />
           <Route path="work-centers" element={<WorkcenterManagement />} />
-          <Route path="equipments" element={<EquipmentManagement />} /> {/* 삭제해야할듯 */}
+          <Route path="equipment" element={<EquipmentManagement />} />
+          <Route path="workers" element={<WorkerManagement />} />
+          <Route path="project-plans" element={<CheckProjectPlan />} />
+
         </Route>
         
         {/* 생산 관리 */}
         <Route path="produce">
+
           <Route path="plans" element={<ProcessPlanInquiry />} />
           <Route path="blockPlans" element={<BlockPlan/>} />
           <Route path="workOrders" element={<WorkOrderInquiry />} /> 
           <Route path="workorder-management" element={<WorkOrderInquiry />} /> {/* 삭제해야할듯 */}
+          <Route path="orders" element={<WorkOrderInquiry />} />
+
         </Route>
         
         {/* 작업지시 관리 */}
