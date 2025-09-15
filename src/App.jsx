@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { getToken, removeToken } from './utils/api';
 import { decodeJwt} from './utils/decodeJwt';
 import BlockPlan from "./pages/BlockPlan";
+import WorkOrder from "./pages/WorkOrder";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -90,7 +91,7 @@ export default function App() {
         <Route path="produce">
           <Route path="plans" element={<ProcessPlanInquiry />} />
           <Route path="blockPlans" element={<BlockPlan/>} />
-          <Route path="workOrders" element={<WorkOrderInquiry />} /> 
+          <Route path="workOrders" element={<WorkOrder />} /> 
           <Route path="workorder-management" element={<WorkOrderInquiry />} /> {/* 삭제해야할듯 */}
         </Route>
         
