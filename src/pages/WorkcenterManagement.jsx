@@ -1,213 +1,210 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useIconContext } from "../utils/IconContext"; // 상단 아이콘 버튼 연동
 
-// API 기본 URL 설정
-const API_URL = 'http://localhost:8080/api/work-centers';
+// 작업장 API 주소
+const WORK_CENTER_API_URL = "http://localhost:8082/api/work-centers";
 
-export default function WorkcenterManagement() {
-  const [workCenters, setWorkCenters] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+// 설비 목록 가짜(mock) 데이터
+const MOCK_EQUIPMENT_DATA = {
+  WC01: [ { id: 'EQ001', name: '프레스 #1' }, { id: 'EQ002', name: '프레스 #2' } ],
+  WC02: [ { id: 'EQ003', name: '용접 로봇 A' } ],
+  WC03: [],
+};
 
-  // 입력 폼을 위한 state
-  const [formState, setFormState] = useState({
-    workCenterId: '',
-    workCenterName: '',
-    location: '',
-    isActive: true,
+export default function WorkCenterManagement() {
+  // --- 상태 관리 (State) ---
+  const [workCenters, setWorkCenters] = useState([]); // 왼쪽 그리드 (작업장 목록)
+  const [equipment, setEquipment] = useState([]);     // 오른쪽 그리드 (설비 목록)
+  const [selectedWorkCenterId, setSelectedWorkCenterId] = useState(null); // 선택된 작업장 ID
+  const [searchParams, setSearchParams] = useState({
+    workCenterId: "",
+    workCenterNm: "",
+    isActive: null,
+    processId: "",
   });
-  // 수정 모드인지 확인하기 위한 state
-  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState({ workCenters: true, equipment: false });
+  const [error, setError] = useState(null);
+  
+  const { setIconHandlers } = useIconContext();
 
-  // 데이터 불러오기
+  // --- 데이터 조회 로직 ---
+
+  // 처음 로드될 때 작업장 목록을 가져옵니다.
   useEffect(() => {
     fetchWorkCenters();
   }, []);
 
-  const fetchWorkCenters = async () => {
+  // 선택된 작업장이 바뀌면 해당 설비 목록을 가져옵니다.
+  useEffect(() => {
+    if (selectedWorkCenterId) {
+      fetchEquipment(selectedWorkCenterId);
+    } else {
+      setEquipment([]);
+    }
+  }, [selectedWorkCenterId]);
+
+  // 상단 '조회' 아이콘 버튼에 검색 기능을 연결합니다.
+  useEffect(() => {
+    const handleSearch = () => {
+      setSelectedWorkCenterId(null);
+      fetchWorkCenters(searchParams);
+    };
+    setIconHandlers({ onSearch: handleSearch });
+    return () => setIconHandlers({ onSearch: null });
+  }, [searchParams, setIconHandlers]);
+
+  // 백엔드에서 작업장 목록을 조회하는 함수
+  const fetchWorkCenters = async (params = {}) => {
+    setLoading(prev => ({ ...prev, workCenters: true }));
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get(API_URL);
-      // 성공적으로 데이터를 받아오면 workCenters 상태 업데이트
+      const queryParams = new URLSearchParams(
+        Object.entries(params).filter(([, value]) => value !== '' && value !== null)
+      ).toString();
+      const fullUrl = `${WORK_CENTER_API_URL}${queryParams ? `?${queryParams}` : ''}`;
+      const response = await axios.get(fullUrl);
       setWorkCenters(response.data);
     } catch (e) {
       setError(e);
-      console.error("데이터 로드 실패:", e.response ? e.response.data : e.message);
     } finally {
-      setLoading(false);
+      setLoading(prev => ({ ...prev, workCenters: false }));
     }
   };
-
-  // 폼 입력 변경 핸들러
-  const handleFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormState(prevState => ({
-      ...prevState,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+  
+  // 설비 목록을 조회하는 함수 (현재는 가짜 데이터)
+  const fetchEquipment = (workCenterId) => {
+    setLoading(prev => ({ ...prev, equipment: true }));
+    setTimeout(() => {
+      setEquipment(MOCK_EQUIPMENT_DATA[workCenterId] || []);
+      setLoading(prev => ({ ...prev, equipment: false }));
+    }, 500);
   };
 
-  // 폼 제출 핸들러 (생성 & 수정)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { workCenterId, ...data } = formState;
-
-    try {
-      if (isEditing) {
-        // 수정 모드
-        await axios.put(`${API_URL}/${workCenterId}`, data);
-      } else {
-        // 생성 모드
-        await axios.post(API_URL, formState);
-      }
-      resetForm();
-      fetchWorkCenters(); // 데이터 다시 불러오기
-    } catch (err) {
-      alert(`오류가 발생했습니다: ${err.response?.data?.message || err.message}`);
-    }
+  // --- 이벤트 핸들러 ---
+  
+  // 검색 조건 입력 시 상태 업데이트
+  const handleSearchChange = (e) => {
+    const { name, value } = e.target;
+    setSearchParams(prev => ({ ...prev, [name]: value }));
+  };
+  
+  // 작업장 그리드의 행 클릭 시
+  const handleWorkCenterSelect = (id) => {
+    setSelectedWorkCenterId(id);
   };
 
-  // 수정 버튼 클릭 핸들러
-  const handleEdit = (center) => {
-    setIsEditing(true);
-    setFormState({
-      workCenterId: center.workCenterId,
-      workCenterName: center.workCenterName,
-      location: center.location,
-      isActive: center.active, // DTO 필드명 'active'에 맞춤
-    });
-  };
-
-  // 삭제 버튼 클릭 핸들러
-  const handleDelete = async (id) => {
-    if (window.confirm(`정말로 이 작업장(ID: ${id})을 삭제하시겠습니까?`)) {
-      try {
-        await axios.delete(`${API_URL}/${id}`);
-        fetchWorkCenters(); // 데이터 다시 불러오기
-      } catch (err) {
-        alert(`삭제 중 오류가 발생했습니다: ${err.response?.data?.message || err.message}`);
-      }
-    }
-  };
-
-  // 폼 리셋 함수
-  const resetForm = () => {
-    setIsEditing(false);
-    setFormState({
-      workCenterId: '',
-      workCenterName: '',
-      location: '',
-      isActive: true,
-    });
-  };
-
-  if (loading) return <div className="p-8 text-center">데이터를 불러오는 중입니다...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">에러: {error.message}</div>;
-
+  // --- 렌더링 ---
   return (
-    <div className="p-8">
-      {/* 입력/수정 폼 */}
-      <div className="mb-8 p-4 border rounded-lg bg-gray-50">
-        <h2 className="text-xl font-bold mb-4">{isEditing ? '작업장 수정' : '새 작업장 추가'}</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <input
-            type="text"
-            name="workCenterId"
-            value={formState.workCenterId}
-            onChange={handleFormChange}
-            placeholder="작업장 ID"
-            className="p-2 border rounded"
-            required
-            disabled={isEditing}
-          />
-          <input
-            type="text"
-            name="workCenterName"
-            value={formState.workCenterName}
-            onChange={handleFormChange}
-            placeholder="작업장 이름"
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="text"
-            name="location"
-            value={formState.location}
-            onChange={handleFormChange}
-            placeholder="위치"
-            className="p-2 border rounded"
-          />
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="isActive"
-              checked={formState.isActive}
-              onChange={handleFormChange}
-              className="mr-2 h-4 w-4"
+    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '90vh' }}>
+      {/* 1. 조회 조건 */}
+      <div style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          
+          <div>
+            <label htmlFor="workCenterId">작업장 ID: </label>
+            <input 
+              id="workCenterId" 
+              name="workCenterId" 
+              value={searchParams.workCenterId} 
+              onChange={handleSearchChange} 
+              style={{ border: '1px solid black' }}
             />
-            <label>활성화</label>
           </div>
-          <div className="md:col-span-4 flex justify-end space-x-2">
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              {isEditing ? '수정 완료' : '추가'}
-            </button>
-            <button
-              type="button"
-              onClick={resetForm}
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-            >
-              취소
-            </button>
+
+          <div>
+            <label htmlFor="workCenterNm">작업장명: </label>
+            <input 
+              id="workCenterNm" 
+              name="workCenterNm" 
+              value={searchParams.workCenterNm} 
+              onChange={handleSearchChange} 
+              style={{ border: '1px solid black' }}
+            />
           </div>
-        </form>
+
+          <div>
+            <label htmlFor="processId">공정 ID: </label>
+            <input 
+              id="processId" 
+              name="processId" 
+              value={searchParams.processId} 
+              onChange={handleSearchChange} 
+              style={{ border: '1px solid black' }}
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="isActive">활성 여부: </label>
+            <select 
+              id="isActive" 
+              name="isActive" 
+              value={searchParams.isActive === null ? '' : searchParams.isActive} 
+              onChange={handleSearchChange} 
+              style={{ border: '1px solid black' }}
+            >
+              <option value="">전체</option>
+              <option value="true">활성</option>
+              <option value="false">비활성</option>
+            </select>
+          </div>
+
+        </div>
       </div>
 
-      {/* 데이터 테이블 */}
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">작업장 관리</h1>
-      <div className="bg-white shadow-md rounded-lg overflow-x-auto">
-        <table className="min-w-full leading-normal">
-          <thead>
-            <tr className="bg-gray-100 text-left text-gray-600 uppercase text-sm">
-              <th className="py-3 px-4">ID</th>
-              <th className="py-3 px-4">이름</th>
-              <th className="py-3 px-4">위치</th>
-              <th className="py-3 px-4">상태</th>
-              <th className="py-3 px-4">작업</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-700">
-            {workCenters.map((center) => (
-              <tr key={center.workCenterId} className="border-b border-gray-200 hover:bg-gray-50">
-                <td className="py-3 px-4">{center.workCenterId}</td>
-                <td className="py-3 px-4">{center.workCenterName}</td>
-                <td className="py-3 px-4">{center.location}</td>
-                <td className="py-3 px-4">
-                  <span className={center.active ? 'text-green-600' : 'text-red-600'}>
-                    {center.active ? '활성' : '비활성'}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <button
-                    onClick={() => handleEdit(center)}
-                    className="text-sm bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-2"
-                  >
-                    수정
-                  </button>
-                  <button
-                    onClick={() => handleDelete(center.workCenterId)}
-                    className="text-sm bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                  >
-                    삭제
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* 2. 하단 그리드 영역 */}
+      <div style={{ flex: 1, display: 'flex', gap: '20px', overflow: 'hidden' }}>
+        
+        {/* 2-1. 작업장 그리드 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #ccc' }}>
+          <h3 style={{ margin: 0, padding: '10px', backgroundColor: '#f2f2f2' }}>작업장</h3>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {loading.workCenters ? <p>로딩 중...</p> : 
+              <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#eee' }}><th>ID</th><th>작업장명</th><th>공정ID</th></tr>
+                </thead>
+                <tbody>
+                  {workCenters.map(wc => (
+                    <tr 
+                      key={wc.workCenterId} 
+                      onClick={() => handleWorkCenterSelect(wc.workCenterId)}
+                      style={{ cursor: 'pointer', backgroundColor: selectedWorkCenterId === wc.workCenterId ? '#e3f2fd' : 'transparent' }}
+                    >
+                      <td>{wc.workCenterId}</td>
+                      <td>{wc.workCenterNm}</td>
+                      <td>{wc.processId}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            }
+          </div>
+        </div>
+
+        {/* 2-2. 설비 그리드 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #ccc' }}>
+          <h3 style={{ margin: 0, padding: '10px', backgroundColor: '#f2f2f2' }}>
+            {selectedWorkCenterId ? `${selectedWorkCenterId} 관련 설비` : '설비 (작업장을 선택하세요)'}
+          </h3>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+          {loading.equipment ? <p>로딩 중...</p> : 
+            <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#eee' }}><th>설비ID</th><th>설비명</th></tr>
+              </thead>
+              <tbody>
+                {equipment.map(eq => (
+                  <tr key={eq.id}>
+                    <td>{eq.id}</td>
+                    <td>{eq.name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          }
+          </div>
+        </div>
       </div>
     </div>
   );

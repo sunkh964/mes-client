@@ -1,5 +1,5 @@
 // src/context/IconContext.jsx
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback} from "react";
 
 const IconContext = createContext();
 
@@ -15,9 +15,9 @@ export const IconProvider = ({ children }) => {
   });
 
   // 핸들러를 한번에 업데이트하는 함수
-  const setIconHandlers = (newHandlers) => {
+  const setIconHandlers = useCallback((newHandlers) => {
     setHandlers((prev) => ({ ...prev, ...newHandlers }));
-  };
+  },[]);
 
   return (
     <IconContext.Provider value={{ ...handlers, setIconHandlers }}>
