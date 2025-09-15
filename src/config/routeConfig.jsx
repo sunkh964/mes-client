@@ -17,8 +17,7 @@ const routesConfig = [
     pageTitle: "생산 관리",
     items: [
       { name: "블록 생산 계획", path: "/produce/blockPlans" },
-      
-      { name: "작업지시 생성", path: "/produce/workorders" },
+      { name: "작업지시 생성", path: "/produce/workOrders" },
     ],
   },
   {
