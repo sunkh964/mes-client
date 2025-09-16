@@ -1,24 +1,34 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useIconContext } from "../utils/IconContext";
 
 const API_URL = "http://localhost:8082/api/workOrders";
 
 export default function WorkOrder() {
-  // 작업지시 목록 저장
   const [workOrders, setWorkOrders] = useState([]);
-  // 선택된 작업지시 (상세 조회용)
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
 
-  // 데이터 조회 함수
+  // 검색 조건
+  const initialSearchParams = {
+    processId: "",
+    blockId: "",
+    workCenterId: "",
+    currentStatus: "",
+    priority: "",
+    plannedStartTime: "",
+    plannedEndTime: "",
+  };
+  const [searchParams, setSearchParams] = useState(initialSearchParams);
+
+  const { setIconHandlers } = useIconContext();
+
+  /** ================= 데이터 조회 관련 함수 ================= */
+  // 전체 조회
   const fetchWorkOrders = async () => {
     try {
       const response = await axios.get(API_URL);
       setWorkOrders(response.data);
-      if (response.data.length > 0) {
-        setSelectedWorkOrder(response.data[0]);
-      } else {
-        setSelectedWorkOrder(null);
-      }
+      setSelectedWorkOrder(response.data.length > 0 ? response.data[0] : null);
     } catch (error) {
       console.error("작업지시 데이터 조회 실패:", error);
       setWorkOrders([]);
@@ -26,33 +36,135 @@ export default function WorkOrder() {
     }
   };
 
+  // 검색 실행
+  const handleSearch = async () => {
+    try {
+      let endpoint = "/search";
+      let params = { ...searchParams };
+
+      // 상세조건이 포함된 경우 searchDetail 호출
+      if (params.priority || params.plannedStartTime || params.plannedEndTime) {
+        endpoint = "/searchDetail";
+      }
+
+      const response = await axios.get(`${API_URL}${endpoint}`, { params });
+      setWorkOrders(response.data);
+      setSelectedWorkOrder(response.data.length > 0 ? response.data[0] : null);
+    } catch (err) {
+      console.error("검색 실패:", err);
+    }
+  };
+
+  // 검색 초기화
+  const handleReset = () => {
+    setSearchParams(initialSearchParams);
+    fetchWorkOrders();
+  };
+
+  /** ================= 이벤트 핸들러 ================= */
+  // 검색 조건 변경 핸들러
+  const handleSearchChange = (e) => {
+    const { name, value } = e.target;
+    setSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 행 선택
+  const handleSelectWorkOrder = (wo) => {
+    setSelectedWorkOrder(wo);
+  };
+
   useEffect(() => {
     fetchWorkOrders();
   }, []);
 
-  // 행 선택 처리
-  const handleSelectWorkOrder = (workOrder) => {
-    setSelectedWorkOrder(workOrder);
-  };
+  // 아이콘 핸들러 등록 (조회 버튼 눌렀을 때)
+  useEffect(() => {
+    setIconHandlers({ onSearch: handleSearch });
+    return () => setIconHandlers({ onSearch: null });
+  }, [searchParams]);
+
+  
 
   return (
-    <div style={{ padding: 20 }}>
-        {/* ==================== 상단: 검색 그리드 ==================== */}
-            <div style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '20px' }}>
-                
-            </div>
+    <div className="p-5">
+      {/* ================= 상단 검색 그리드 ================= */}
+      <div className="border border-gray-300 px-3 py-5 mb-5">
+        <div className="flex flex-wrap gap-6">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">작업지시 ID:</label>
+            <input
+              type="text"
+              name="processId"
+              value={searchParams.processId}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm w-32"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">블록 ID:</label>
+            <input
+              type="text"
+              name="blockId"
+              value={searchParams.blockId}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm w-32"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">검사 일시:</label>
+            <input
+              type="text"
+              name="workCenterId"
+              value={searchParams.workCenterId}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm w-32"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">결과:</label>
+            <select
+              name="currentStatus"
+              value={searchParams.currentStatus}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm w-32"
+            >
+              <option value="">전체</option>
+              <option value="pass">합격</option>
+              <option value="fail">불합격</option>
+              <option value="pending">보류</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">불량 유형:</label>
+            <input
+              type="number"
+              name="priority"
+              value={searchParams.priority}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm w-20"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="ml-auto px-3 py-1 border bg-slate-500 text-white text-sm hover:bg-slate-600"
+          >
+            초기화
+          </button>
+        </div>
+      </div>
 
-      <h2 style={{ marginBottom: 16 }}>작업지시 목록</h2>
+      <h2 className="mb-2 text-lg font-semibold">작업지시 목록</h2>
 
       {/* 작업지시 목록 테이블 */}
-      <div style={{ maxHeight: 300, overflowY: "auto", border: "1px solid #ccc", marginBottom: 20 }}>
+      <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid #ccc", marginBottom: 20 }}>
         <table
           border="1"
           style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}
         >
           <thead style={{ backgroundColor: "#f2f2f2" }}>
             <tr>
-              {/* 테이블 헤더 : workOrders가 비어있으면 헤더도 없으니 기본 컬럼명 적었습니다 */}
+              {/* 테이블 헤더*/}
               <th style={{ padding: 8 }}>작업지시 ID</th>
               <th style={{ padding: 8 }}>공정 ID</th>
               <th style={{ padding: 8 }}>공정계획 ID</th>
@@ -91,8 +203,8 @@ export default function WorkOrder() {
       </div>
 
       {/* 상세 조회 */}
-        <div style={{ border: "1px solid #ccc", padding: 16, borderRadius: 4, maxHeight: 400, overflowX: "auto" }}>
-        <h3 style={{ marginBottom: 12 }}>상세조회</h3>
+        <h3 className="mb-2 text-lg font-semibold">상세조회</h3>
+        <div style={{ border: "1px solid #ccc", maxHeight: 400, overflowX: "auto" }}>
 
         {selectedWorkOrder ? (
             <table border="1" style={{ width: "100%", borderCollapse: "collapse", tableLayout: "auto" }}>
@@ -115,8 +227,6 @@ export default function WorkOrder() {
                 <th style={{ padding: 8 }}>현재 상태</th>
                 <th style={{ padding: 8 }}>우선순위</th>
                 <th style={{ padding: 8 }}>비고</th>
-                <th style={{ padding: 8 }}>생성일시</th>
-                <th style={{ padding: 8 }}>수정일시</th>
                 </tr>
             </thead>
             <tbody>
@@ -138,8 +248,6 @@ export default function WorkOrder() {
                 <td style={{ padding: 8 }}>{selectedWorkOrder.currentStatus}</td>
                 <td style={{ padding: 8 }}>{selectedWorkOrder.priority}</td>
                 <td style={{ padding: 8 }}>{selectedWorkOrder.remark}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.createdAt}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.updatedAt}</td>
                 </tr>
             </tbody>
             </table>

@@ -26,7 +26,8 @@ import WorkOrder from "./pages/WorkOrder";
 import WorkInProgress from "./pages/WorkInProgress";
 import WorkResult from "./pages/WorkResult";
 import MaterialSelectionModal from "./pages/MaterialSelectionModal"
-
+import BlockQC from "./pages/BlockQC";
+import Shipment from "./pages/Shipment";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -120,7 +121,13 @@ export default function App() {
         {/* 품질 관리 */}
         <Route path="quality">
           <Route path="inspection" element={<QualityControl />} />
+          <Route path="blockQC" element={<BlockQC/>}/>
           <Route path="defects" element={<DefectReport />} />
+        </Route>
+
+        {/* 출하 관리*/}
+        <Route path="shipment">
+          <Route index element={<Shipment />} />   
         </Route>
 
         {/* 설비 관리 - 삭제해야함  */}

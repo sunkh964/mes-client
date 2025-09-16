@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api/quality-controls';
+// const API_URL = 'http://localhost:8080/api/quality-controls';
 
 export default function QualityControl() {
   const [qcList, setQcList] = useState([]);
