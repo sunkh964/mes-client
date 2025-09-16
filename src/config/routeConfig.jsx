@@ -43,15 +43,16 @@ const routesConfig = [
     pageTitle: "품질 관리",
     items: [
         { name: "자재 품질검사", path: "/quality/inspection" }, // 루트 수정 필요
-        { name: "블록 품질검사", path: "/quality/inspection" },
+        { name: "블록 품질검사", path: "/quality/blockQC" },
         { name: "불량 보고", path: "/quality/defects" },
     ],
   },
   {
     title: "출하 관리",
-    path: "/shipping/shipments",
+    path: "/shipment",
+    pageTitle: "출하 관리",
     items: [
-        { name: "출하 등록 및 조회", path: "/shipping/shipments" },
+        { name: "출하 등록 및 조회", path: "/shipment" },
     ],
   },
 ];

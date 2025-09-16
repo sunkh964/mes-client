@@ -97,7 +97,7 @@ export default function BlockPlan() {
     return(
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '90vh' }}>
             {/* ==================== 상단: 검색 그리드 ==================== */}
-            <div className="border border-gray-300 p-3 mb-5">
+            <div className="border border-gray-300 px-3 py-5 mb-5">
                 <div className="flex flex-wrap gap-7">
                     {/* 1행 */}
                     <div className="flex items-center gap-2">

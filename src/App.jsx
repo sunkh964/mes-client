@@ -24,6 +24,8 @@ import { getToken, removeToken } from './utils/api';
 import { decodeJwt} from './utils/decodeJwt';
 import BlockPlan from "./pages/BlockPlan";
 import WorkOrder from "./pages/WorkOrder";
+import BlockQC from "./pages/BlockQC";
+import Shipment from "./pages/Shipment";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -119,7 +121,13 @@ export default function App() {
         {/* 품질 관리 */}
         <Route path="quality">
           <Route path="inspection" element={<QualityControl />} />
+          <Route path="blockQC" element={<BlockQC/>}/>
           <Route path="defects" element={<DefectReport />} />
+        </Route>
+
+        {/* 출하 관리*/}
+        <Route path="shipment">
+          <Route index element={<Shipment />} />   
         </Route>
 
         {/* 설비 관리 - 삭제해야함  */}

@@ -22,6 +22,7 @@ export default function WorkOrder() {
 
   const { setIconHandlers } = useIconContext();
 
+  /** ================= 데이터 조회 관련 함수 ================= */
   // 전체 조회
   const fetchWorkOrders = async () => {
     try {
@@ -60,10 +61,16 @@ export default function WorkOrder() {
     fetchWorkOrders();
   };
 
+  /** ================= 이벤트 핸들러 ================= */
   // 검색 조건 변경 핸들러
   const handleSearchChange = (e) => {
     const { name, value } = e.target;
     setSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 행 선택
+  const handleSelectWorkOrder = (wo) => {
+    setSelectedWorkOrder(wo);
   };
 
   useEffect(() => {
@@ -76,18 +83,15 @@ export default function WorkOrder() {
     return () => setIconHandlers({ onSearch: null });
   }, [searchParams]);
 
-  // 행 선택
-  const handleSelectWorkOrder = (wo) => {
-    setSelectedWorkOrder(wo);
-  };
+  
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="p-5">
       {/* ================= 상단 검색 그리드 ================= */}
-      <div className="border border-gray-300 p-3 mb-5">
+      <div className="border border-gray-300 px-3 py-5 mb-5">
         <div className="flex flex-wrap gap-6">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">공정 ID:</label>
+            <label className="text-sm font-medium">작업지시 ID:</label>
             <input
               type="text"
               name="processId"
@@ -107,7 +111,7 @@ export default function WorkOrder() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">작업장:</label>
+            <label className="text-sm font-medium">검사 일시:</label>
             <input
               type="text"
               name="workCenterId"
@@ -117,7 +121,7 @@ export default function WorkOrder() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">상태:</label>
+            <label className="text-sm font-medium">결과:</label>
             <select
               name="currentStatus"
               value={searchParams.currentStatus}
@@ -125,39 +129,19 @@ export default function WorkOrder() {
               className="border px-2 py-1 text-sm w-32"
             >
               <option value="">전체</option>
-              <option value="waiting">대기</option>
-              <option value="in-progress">진행중</option>
-              <option value="completed">완료</option>
+              <option value="pass">합격</option>
+              <option value="fail">불합격</option>
+              <option value="pending">보류</option>
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">우선순위:</label>
+            <label className="text-sm font-medium">불량 유형:</label>
             <input
               type="number"
               name="priority"
               value={searchParams.priority}
               onChange={handleSearchChange}
               className="border px-2 py-1 text-sm w-20"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">계획 시작:</label>
-            <input
-              type="datetime-local"
-              name="plannedStartTime"
-              value={searchParams.plannedStartTime}
-              onChange={handleSearchChange}
-              className="border px-2 py-1 text-sm"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">계획 종료:</label>
-            <input
-              type="datetime-local"
-              name="plannedEndTime"
-              value={searchParams.plannedEndTime}
-              onChange={handleSearchChange}
-              className="border px-2 py-1 text-sm"
             />
           </div>
           <button
@@ -173,14 +157,14 @@ export default function WorkOrder() {
       <h2 className="mb-2 text-lg font-semibold">작업지시 목록</h2>
 
       {/* 작업지시 목록 테이블 */}
-      <div style={{ maxHeight: 300, overflowY: "auto", border: "1px solid #ccc", marginBottom: 20 }}>
+      <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid #ccc", marginBottom: 20 }}>
         <table
           border="1"
           style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}
         >
           <thead style={{ backgroundColor: "#f2f2f2" }}>
             <tr>
-              {/* 테이블 헤더 : workOrders가 비어있으면 헤더도 없으니 기본 컬럼명 적었습니다 */}
+              {/* 테이블 헤더*/}
               <th style={{ padding: 8 }}>작업지시 ID</th>
               <th style={{ padding: 8 }}>공정 ID</th>
               <th style={{ padding: 8 }}>공정계획 ID</th>
