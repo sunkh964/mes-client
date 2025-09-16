@@ -18,12 +18,13 @@ import MaterialOutput from './pages/MaterialOutput';
 import MaterialInventory from './pages/MaterialInventory';
 import QualityControl from './pages/QualityControl';
 import DefectReport from './pages/DefectReport';
-import WorkResultLogging from './pages/WorkResultLogging';
 import { useEffect, useState } from "react";
 import { getToken, removeToken } from './utils/api';
 import { decodeJwt} from './utils/decodeJwt';
 import BlockPlan from "./pages/BlockPlan";
 import WorkOrder from "./pages/WorkOrder";
+import WorkInProgress from "./pages/WorkInProgress";
+import WorkResult from "./pages/WorkResult";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -94,8 +95,6 @@ export default function App() {
         
         {/* 생산 관리 */}
         <Route path="produce">
-
-          
           <Route path="blockPlans" element={<BlockPlan/>} />
           <Route path="workOrders" element={<WorkOrder />} /> 
           <Route path="workorder-management" element={<WorkOrderInquiry />} /> {/* 삭제해야할듯 */}
@@ -104,9 +103,9 @@ export default function App() {
         </Route>
         
         {/* 작업지시 관리 */}
-        <Route path="process">
-          
-          <Route path="results-log" element={<WorkResultLogging />} /> {/* 삭제해야할듯 */}
+        <Route path="progress">
+           <Route path="workinprogress" element={<WorkInProgress />} />
+           <Route path="work-results" element={<WorkResult />} />
         </Route>
         
         {/* 자재 관리 */}
