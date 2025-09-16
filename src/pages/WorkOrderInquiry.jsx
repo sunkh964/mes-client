@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8082/api/workOrders';
+const API_URL = 'http://localhost:8082/api/work-orders';
 
 // LocalDateTime 형식을 "YYYY-MM-DD HH:MM"으로 바꿔주는 함수
 const formatDateTime = (dateTimeString) => {
