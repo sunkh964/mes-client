@@ -38,10 +38,10 @@ const routesConfig = [
   },
   {
     title: "품질관리",
-    path: "/quality/inspection", 
+    path: "/quality/materialQC", 
     pageTitle: "품질 관리",
     items: [
-        { name: "자재 품질검사", path: "/quality/inspection" }, // 루트 수정 필요
+        { name: "자재 품질검사", path: "/quality/materialQC" },
         { name: "블록 품질검사", path: "/quality/blockQC" },
         { name: "불량 보고", path: "/quality/defects" },
     ],

@@ -28,6 +28,7 @@ import WorkResult from "./pages/WorkResult";
 import MaterialSelectionModal from "./pages/MaterialSelectionModal"
 import BlockQC from "./pages/BlockQC";
 import Shipment from "./pages/Shipment";
+import MaterialQC from "./pages/MaterialQC";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -120,7 +121,7 @@ export default function App() {
 
         {/* 품질 관리 */}
         <Route path="quality">
-          <Route path="inspection" element={<QualityControl />} />
+          <Route path="materialQC" element={<MaterialQC/>} />
           <Route path="blockQC" element={<BlockQC/>}/>
           <Route path="defects" element={<DefectReport />} />
         </Route>

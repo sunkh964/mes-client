@@ -165,11 +165,11 @@ export default function WorkOrder() {
           <thead style={{ backgroundColor: "#f2f2f2" }}>
             <tr>
               {/* 테이블 헤더*/}
-              <th style={{ padding: 8 }}>작업지시 ID</th>
-              <th style={{ padding: 8 }}>공정 ID</th>
-              <th style={{ padding: 8 }}>공정계획 ID</th>
-              <th style={{ padding: 8 }}>우선순위</th>
-              <th style={{ padding: 8 }}>담당자</th>
+              <th className="p-3">작업지시 ID</th>
+              <th className="p-3">공정 ID</th>
+              <th className="p-3">공정계획 ID</th>
+              <th className="p-3">우선순위</th>
+              <th className="p-3">담당자</th>
             </tr>
           </thead>
           <tbody>
@@ -190,11 +190,11 @@ export default function WorkOrder() {
                       selectedWorkOrder?.workOrderId === wo.workOrderId ? "#cce5ff" : "white",
                   }}
                 >
-                  <td style={{ padding: 8 }}>{wo.workOrderId}</td>
-                  <td style={{ padding: 8 }}>{wo.processId}</td>
-                  <td style={{ padding: 8 }}>{wo.blockPlanId}</td>
-                  <td style={{ padding: 8 }}>{wo.priority}</td>
-                  <td style={{ padding: 8 }}>{wo.employeeId}</td>
+                  <td className="p-3">{wo.workOrderId}</td>
+                  <td className="p-3">{wo.processId}</td>
+                  <td className="p-3">{wo.blockPlanId}</td>
+                  <td className="p-3">{wo.priority}</td>
+                  <td className="p-3">{wo.employeeId}</td>
                 </tr>
               ))
             )}
@@ -210,44 +210,44 @@ export default function WorkOrder() {
             <table border="1" style={{ width: "100%", borderCollapse: "collapse", tableLayout: "auto" }}>
             <thead style={{ backgroundColor: "#f2f2f2" }}>
                 <tr>
-                <th style={{ padding: 8 }}>작업지시 ID</th>
-                <th style={{ padding: 8 }}>공정 ID</th>
-                <th style={{ padding: 8 }}>블록 계획 ID</th>
-                <th style={{ padding: 8 }}>블록 ID</th>
-                <th style={{ padding: 8 }}>작업장 ID</th>
-                <th style={{ padding: 8 }}>설비 ID</th>
-                <th style={{ padding: 8 }}>작업자 ID</th>
-                <th style={{ padding: 8 }}>지시사항</th>
-                <th style={{ padding: 8 }}>생산 예정 수량</th>
-                <th style={{ padding: 8 }}>생산 완료 수량</th>
-                <th style={{ padding: 8 }}>계획 시작일</th>
-                <th style={{ padding: 8 }}>계획 종료일</th>
-                <th style={{ padding: 8 }}>실제 시작일</th>
-                <th style={{ padding: 8 }}>실제 종료일</th>
-                <th style={{ padding: 8 }}>현재 상태</th>
-                <th style={{ padding: 8 }}>우선순위</th>
-                <th style={{ padding: 8 }}>비고</th>
+                <th className="p-3">작업지시 ID</th>
+                <th className="p-3">공정 ID</th>
+                <th className="p-3">블록 계획 ID</th>
+                <th className="p-3">블록 ID</th>
+                <th className="p-3">작업장 ID</th>
+                <th className="p-3">설비 ID</th>
+                <th className="p-3">작업자 ID</th>
+                <th className="p-3">지시사항</th>
+                <th className="p-3">생산 예정 수량</th>
+                <th className="p-3">생산 완료 수량</th>
+                <th className="p-3">계획 시작일</th>
+                <th className="p-3">계획 종료일</th>
+                <th className="p-3">실제 시작일</th>
+                <th className="p-3">실제 종료일</th>
+                <th className="p-3">현재 상태</th>
+                <th className="p-3">우선순위</th>
+                <th className="p-3">비고</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.workOrderId}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.process?.processId || "-"}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.blockPlan?.blockPlanId || "-"}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.block?.blockId || "-"}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.workCenter?.workCenterId || "-"}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.equipment?.equipmentId || "-"}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.employee?.employeeId || "-"}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.instruction}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.quantityToProduce}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.quantityProduced}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.plannedStartTime}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.plannedEndTime}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.actualStartTime}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.actualEndTime}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.currentStatus}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.priority}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.remark}</td>
+                <td className="p-3">{selectedWorkOrder.workOrderId}</td>
+                <td className="p-3">{selectedWorkOrder.process?.processId || "-"}</td>
+                <td className="p-3">{selectedWorkOrder.blockPlan?.blockPlanId || "-"}</td>
+                <td className="p-3">{selectedWorkOrder.block?.blockId || "-"}</td>
+                <td className="p-3">{selectedWorkOrder.workCenter?.workCenterId || "-"}</td>
+                <td className="p-3">{selectedWorkOrder.equipment?.equipmentId || "-"}</td>
+                <td className="p-3">{selectedWorkOrder.employee?.employeeId || "-"}</td>
+                <td className="p-3">{selectedWorkOrder.instruction}</td>
+                <td className="p-3">{selectedWorkOrder.quantityToProduce}</td>
+                <td className="p-3">{selectedWorkOrder.quantityProduced}</td>
+                <td className="p-3">{selectedWorkOrder.plannedStartTime}</td>
+                <td className="p-3">{selectedWorkOrder.plannedEndTime}</td>
+                <td className="p-3">{selectedWorkOrder.actualStartTime}</td>
+                <td className="p-3">{selectedWorkOrder.actualEndTime}</td>
+                <td className="p-3">{selectedWorkOrder.currentStatus}</td>
+                <td className="p-3">{selectedWorkOrder.priority}</td>
+                <td className="p-3">{selectedWorkOrder.remark}</td>
                 </tr>
             </tbody>
             </table>
