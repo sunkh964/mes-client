@@ -13,7 +13,7 @@ import EquipmentManagement from './pages/EquipmentManagement';
 import WorkerManagement from './pages/WorkerManagement';
 import CheckProjectPlan from './pages/CheckProjectPlan';
 import WorkOrderInquiry from "./pages/WorkOrderInquiry";
-import MaterialInput from './pages/MaterialInput';
+import MaterialUsage from './pages/MaterialUsage';
 import MaterialOutput from './pages/MaterialOutput';
 import MaterialInventory from './pages/MaterialInventory';
 import QualityControl from './pages/QualityControl';
@@ -25,6 +25,8 @@ import BlockPlan from "./pages/BlockPlan";
 import WorkOrder from "./pages/WorkOrder";
 import WorkInProgress from "./pages/WorkInProgress";
 import WorkResult from "./pages/WorkResult";
+import MaterialSelectionModal from "./pages/MaterialSelectionModal"
+
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -110,7 +112,7 @@ export default function App() {
         
         {/* 자재 관리 */}
         <Route path="materials">
-          <Route path="input" element={<MaterialInput />} />
+          <Route path="usage" element={<MaterialUsage />} />
           <Route path="output" element={<MaterialOutput />} /> {/* 삭제해야할듯 */}
           <Route path="inventory" element={<MaterialInventory />} /> {/* 삭제해야할듯 */}
         </Route>
