@@ -192,8 +192,11 @@ export default function ProcessManagement() {
               <tr style={{ backgroundColor: "#f2f2f2" }}>
                 <th style={{ padding: "8px" }}>공정 ID</th>
                 <th style={{ padding: "8px" }}>공정명</th>
-                <th style={{ padding: "8px" }}>공정 정보</th>
+                <th style={{ padding: "8px" }}>공정 설명</th>
+                <th style={{ padding: "8px" }}>공정 순서</th>
+                <th style={{ padding: "8px" }}>표준 작업시간</th>
                 <th style={{ padding: "8px" }}>활성 여부</th>
+                <th style={{ padding: "8px" }}>비고</th>
               </tr>
             </thead>
             <tbody>
@@ -248,9 +251,12 @@ export default function ProcessManagement() {
                   <td style={{ padding: "8px" }}>{process.processId}</td>
                   <td style={{ padding: "8px" }}>{process.processNm}</td>
                   <td style={{ padding: "8px" }}>{process.processInfo}</td>
+                  <td style={{ padding: "8px" }}>{process.processSequence}</td>
+                  <td style={{ padding: "8px" }}>{process.standardTime}</td>
                   <td style={{ padding: "8px" }}>
                     {process.isActive ? "활성" : "비활성"}
                   </td>
+                  <td style={{ padding: "8px" }}>{process.remark}</td>
                 </tr>
               )
             )}

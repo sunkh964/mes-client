@@ -30,6 +30,9 @@ export default function WorkCenterManagement() {
       const fullUrl = `${WORK_CENTER_API_URL}${queryParams ? `?${queryParams}` : ''}`;
       const response = await axios.get(fullUrl);
       setWorkCenters(response.data);
+      if (response.data.length > 0) {
+        setSelectedWorkCenterId(response.data[0].workCenterId); // 첫 번째 항목 선택
+      }
     } catch (e) {
       setError(e);
     } finally {

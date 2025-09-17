@@ -1,5 +1,5 @@
 // App.jsx
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import Layout from "./pages/Layout";
 import Login from "./pages/Login";
 import ProtectedRoute from './components/ProtectedRoute';
@@ -13,27 +13,23 @@ import EquipmentManagement from './pages/EquipmentManagement';
 import WorkerManagement from './pages/WorkerManagement';
 import CheckProjectPlan from './pages/CheckProjectPlan';
 import WorkOrderInquiry from "./pages/WorkOrderInquiry";
-import MaterialUsage from './pages/MaterialUsage';
 import MaterialOutput from './pages/MaterialOutput';
 import MaterialInventory from './pages/MaterialInventory';
 import QualityControl from './pages/QualityControl';
 import DefectReport from './pages/DefectReport';
+// import WorkResultLogging from './pages/WorkResultLogging';
 import { useEffect, useState } from "react";
 import { getToken, removeToken } from './utils/api';
 import { decodeJwt} from './utils/decodeJwt';
 import BlockPlan from "./pages/BlockPlan";
 import WorkOrder from "./pages/WorkOrder";
-import WorkInProgress from "./pages/WorkInProgress";
-import WorkResult from "./pages/WorkResult";
-import MaterialSelectionModal from "./pages/MaterialSelectionModal"
-import BlockQC from "./pages/BlockQC";
-import Shipment from "./pages/Shipment";
-import MaterialQC from "./pages/MaterialQC";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState(null);
   const [username, setUsername] = useState(null);
+
+  const location = useLocation();
 
   // 컴포넌트 마운트 시 토큰 유효성 검사 및 상태 업데이트
   // 이 로직은 페이지를 새로고침하거나 직접 접속했을 때 로그인 상태를 유지하기 위해 필수적입니다.
@@ -54,6 +50,13 @@ export default function App() {
     }
   }, []);
 
+  // 새로고침
+  useEffect(()=>{
+    if(isLoggedIn){
+      localStorage.setItem("lastPath", location.pathname);
+    }
+  },[location,isLoggedIn]);
+
   // 로그인 처리 함수: Login 컴포넌트로부터 호출됨
   // Login 컴포넌트에서 이미 로컬 스토리지에 값을 저장하므로, App에서는 상태만 업데이트합니다.
   const handleLogin = () => {
@@ -62,6 +65,8 @@ export default function App() {
     setIsLoggedIn(true);
     setUsername(storedEmployeeId);
     setRole(storedRole);
+
+    localStorage.setItem("lastPath", "/main/processes");
   };
 
   // 로그아웃 처리 함수: UserLayout으로부터 호출됨
@@ -84,7 +89,11 @@ export default function App() {
                                : <Navigate to="/login" replace />}>
         
         {/* 웹사이트의 첫 페이지('/')일 때 기본으로 보여줄 페이지 */}
-        <Route index element={<ProcessManagement />} />
+        <Route index 
+          element={<Navigate
+            to={localStorage.getItem("lastPath") || "/main/processes"}
+            replace
+          />} />
         
         {/* 기준 정보 관리 */}
         <Route path="main">
@@ -99,6 +108,8 @@ export default function App() {
         
         {/* 생산 관리 */}
         <Route path="produce">
+
+          
           <Route path="blockPlans" element={<BlockPlan/>} />
           <Route path="workOrders" element={<WorkOrder />} /> 
           <Route path="workorder-management" element={<WorkOrderInquiry />} /> {/* 삭제해야할듯 */}
@@ -107,28 +118,22 @@ export default function App() {
         </Route>
         
         {/* 작업지시 관리 */}
-        <Route path="progress">
-           <Route path="workinprogress" element={<WorkInProgress />} />
-           <Route path="work-results" element={<WorkResult />} />
+        <Route path="process">
+          
+          {/* <Route path="results-log" element={<WorkResultLogging />} /> 삭제해야할듯 */}
         </Route>
         
         {/* 자재 관리 */}
         <Route path="materials">
-          <Route path="usage" element={<MaterialUsage />} />
+          {/* <Route path="input" element={<MaterialInput />} /> */}
           <Route path="output" element={<MaterialOutput />} /> {/* 삭제해야할듯 */}
           <Route path="inventory" element={<MaterialInventory />} /> {/* 삭제해야할듯 */}
         </Route>
 
         {/* 품질 관리 */}
         <Route path="quality">
-          <Route path="materialQC" element={<MaterialQC/>} />
-          <Route path="blockQC" element={<BlockQC/>}/>
+          <Route path="inspection" element={<QualityControl />} />
           <Route path="defects" element={<DefectReport />} />
-        </Route>
-
-        {/* 출하 관리*/}
-        <Route path="shipment">
-          <Route index element={<Shipment />} />   
         </Route>
 
         {/* 설비 관리 - 삭제해야함  */}
