@@ -36,12 +36,20 @@ export default function MaterialQC() {
   // 검색 실행
   const handleSearch = async () => {
     try {
-      const res = await axios.get(`${API_URL}/search`, { params: searchParams });
+      const params = {
+        purchaseOrderId: searchParams.purchaseOrderId,
+        materialId: searchParams.materialId,
+        inspectionDateFrom: searchParams.from ? `${searchParams.from}T00:00:00` : undefined,
+        inspectionDateTo: searchParams.to ? `${searchParams.to}T23:59:59` : undefined,
+        result: searchParams.result
+      };
+      const res = await axios.get(`${API_URL}/search`, { params });
       setMaterialQC(res.data);
     } catch (e) {
       console.error("검색 실패:", e);
     }
   };
+
 
   // 아이콘 핸들러 등록 (상단 아이콘바 검색 버튼과 연결)
   useEffect(() => {
