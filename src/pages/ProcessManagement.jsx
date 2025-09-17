@@ -8,24 +8,24 @@ const API_URL = "http://localhost:8082/api/processes";
 
 
 export default function ProcessManagement() {
-  
+
+  // --- 1. 상태(State) 정의 ---
+  // 이 컴포넌트에서 사용하는 모든 데이터를 상태로 관리합니다.
   const [processes, setProcesses] = useState([]);  // 공정 목록을 저장할 state (초기값은 빈 배열)  
   const [loading, setLoading] = useState(true);    // 데이터를 불러오는 중인지 알려주는 loading state  
-  const [error, setError] = useState(null);        // 3. 에러가 발생했는지 알려주는 error state
+  const [error, setError] = useState(null);        // 에러가 발생했는지 알려주는 error state
 
-  // 검색 조건을 저장할 state
+  // 검색 필터의 현재 값을 저장하는 상태
   const [searchParams, setSearchParams] = useState({
     processId: '',
     processNm: '',
     isActive: null, // 체크박스는 true/false/null 세 가지 상태를 가질 수 있습니다.
   });
 
-   // 페이지가 처음 로드될 때 전체 목록을 조회합니다.
-  useEffect(() => {
-    fetchProcesses();
-  }, []);
+  
 
-  // 데이터를 조건에 맞게 가져오는 함수
+  // --- 2. 데이터 조회 함수 ---
+  // API를 호출하여 데이터를 가져오는 핵심 함수
   const fetchProcesses = async (params = {}) => {
     setLoading(true);
     setError(null);
@@ -47,7 +47,9 @@ export default function ProcessManagement() {
     }
   };
 
-  // 3. 검색 입력창 값이 바뀔 때마다 searchParams state를 업데이트하는 함수
+  // --- 3. 이벤트 핸들러 ---
+  // 사용자의 입력이나 클릭에 반응하는 함수들입니다.
+  // 검색 입력창 값이 바뀔 때마다 searchParams state를 업데이트하는 함수
   const handleSearchChange = (e) => {
 
   const { name, value } = e.target;
@@ -55,25 +57,33 @@ export default function ProcessManagement() {
 };
 
   
-  // 4. 검색 버튼 클릭 시 실행될 함수
+  // 검색 버튼 클릭 시 실행될 함수
   const handleSearch = () => {
     fetchProcesses(searchParams);
   };
 
-  // 5. Context에서 핸들러 등록 함수 가져오기
+  // Context에서 핸들러 등록 함수 가져오기
   const { setIconHandlers } = useIconContext(); 
 
-  // 6. onSearch 아이콘 버튼에 handleSearch 함수를 연결합니다.
+  // --- 4. 사이드 이펙트 (Side Effects) ---
+    // 렌더링 후 특정 작업을 수행해야 할 때 사용합니다. (주로 데이터 fetching, 아이콘 버튼 연동)
+
+    // 페이지가 처음 로드될 때 전체 목록을 조회합니다.
+    useEffect(() => {
+      fetchProcesses();
+    }, []);
+
+  // onSearch 아이콘 버튼에 handleSearch 함수를 연결합니다.
   useEffect(() => {
     setIconHandlers({ onSearch: handleSearch });
     
     // 컴포넌트가 사라질 때 등록된 핸들러를 정리(clean-up)합니다.
     return () => {
-      setIconHandlers({ onSearch: null });
-    };
-  }, [searchParams]); // searchParams가 바뀔 때마다 최신 상태를 반영한 함수를 다시 등록
+        setIconHandlers({ onSearch: null });
+      };
+    }, [searchParams]); // searchParams가 바뀔 때마다 최신 상태를 반영한 함수를 다시 등록
 
-
+   
   
 
   return (

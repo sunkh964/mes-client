@@ -30,6 +30,9 @@ import BlockQC from "./pages/BlockQC";
 import Shipment from "./pages/Shipment";
 import MaterialQC from "./pages/MaterialQC";
 
+// 테스트
+import BomInquiry from "./inquiry/BomInquiry";
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState(null);
@@ -131,9 +134,9 @@ export default function App() {
           <Route index element={<Shipment />} />   
         </Route>
 
-        {/* 설비 관리 - 삭제해야함  */}
-        <Route path="equipment">
-          <Route path="equipment-management" element={<EquipmentManagement />} />
+        {/* 조회 테스트  */}
+        <Route path="test">
+          <Route path="boms" element={<BomInquiry />} />
         </Route>
 
       </Route>
