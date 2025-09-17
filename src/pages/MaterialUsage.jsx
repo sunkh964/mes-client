@@ -184,7 +184,7 @@ export default function MaterialUsage() {
           </div>
           {/* 사용일 From */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">사용일 From:</label>
+            <label className="text-sm font-medium">사용일:</label>
             <input
               type="date"
               name="start"
@@ -195,7 +195,7 @@ export default function MaterialUsage() {
           </div>
           {/* 사용일 To */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">To:</label>
+            <label className="text-sm font-medium"> ~ </label>
             <input
               type="date"
               name="end"

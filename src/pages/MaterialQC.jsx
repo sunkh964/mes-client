@@ -37,16 +37,24 @@ export default function MaterialQC() {
   const handleSearch = async () => {
     try {
       const params = {
-        purchaseOrderId: searchParams.purchaseOrderId,
-        materialId: searchParams.materialId,
-        inspectionDateFrom: searchParams.from ? `${searchParams.from}T00:00:00` : undefined,
-        inspectionDateTo: searchParams.to ? `${searchParams.to}T23:59:59` : undefined,
-        result: searchParams.result
+        purchaseOrderId: searchParams.purchaseOrderId || undefined,
+        materialId: searchParams.materialId
+          ? Number(searchParams.materialId)
+          : undefined,
+        inspectionDateFrom: searchParams.from
+          ? `${searchParams.from}T00:00:00`
+          : undefined,
+        inspectionDateTo: searchParams.to
+          ? `${searchParams.to}T23:59:59`
+          : undefined,
+        result: searchParams.result || undefined,
       };
+
       const res = await axios.get(`${API_URL}/search`, { params });
       setMaterialQC(res.data);
     } catch (e) {
       console.error("검색 실패:", e);
+      setMaterialQC([]);
     }
   };
 

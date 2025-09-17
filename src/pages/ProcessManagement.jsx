@@ -2,43 +2,38 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
-import useKeyboard from "../hooks/useKeyboard";
 
 const API_URL = "http://localhost:8082/api/processes";
 
-
 export default function ProcessManagement() {
-  
-  const [processes, setProcesses] = useState([]);  // 공정 목록을 저장할 state (초기값은 빈 배열)  
-  const [loading, setLoading] = useState(true);    // 데이터를 불러오는 중인지 알려주는 loading state  
-  const [error, setError] = useState(null);        // 3. 에러가 발생했는지 알려주는 error state
+  const [processes, setProcesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
 
-  // 검색 조건을 저장할 state
   const [searchParams, setSearchParams] = useState({
-    processId: '',
-    processNm: '',
-    isActive: null, // 체크박스는 true/false/null 세 가지 상태를 가질 수 있습니다.
+    processId: "",
+    processNm: "",
+    isActive: null,
   });
 
-   // 페이지가 처음 로드될 때 전체 목록을 조회합니다.
-  useEffect(() => {
-    fetchProcesses();
-  }, []);
+  const { setIconHandlers } = useIconContext();
 
-  // 데이터를 조건에 맞게 가져오는 함수
+  // ================= 데이터 조회 =================
   const fetchProcesses = async (params = {}) => {
     setLoading(true);
     setError(null);
     try {
       const queryParams = new URLSearchParams(
         Object.entries(params).filter(([key, value]) => {
-          if (key === 'isActive') return value !== null; // isActive는 null이 아닐 때만 포함
-          return value !== ''; // 나머지는 빈 문자열이 아닐 때만 포함
+          if (key === "isActive") return value !== null;
+          return value !== "";
         })
       ).toString();
-      
-      const fullUrl = `${API_URL}${queryParams ? `?${queryParams}` : ''}`;
-      const response = await axios.get(fullUrl);
+
+      const response = await axios.get(
+        `${API_URL}${queryParams ? `?${queryParams}` : ""}`
+      );
       setProcesses(response.data);
     } catch (e) {
       setError(e);
@@ -47,40 +42,105 @@ export default function ProcessManagement() {
     }
   };
 
-  // 3. 검색 입력창 값이 바뀔 때마다 searchParams state를 업데이트하는 함수
-  const handleSearchChange = (e) => {
+  useEffect(() => {
+    fetchProcesses();
+  }, []);
 
-  const { name, value } = e.target;
-  setSearchParams(prev => ({ ...prev, [name]: value }));
-};
-
-  
-  // 4. 검색 버튼 클릭 시 실행될 함수
-  const handleSearch = () => {
-    fetchProcesses(searchParams);
+  // ================= 신규 행 추가 =================
+  const handleNew = () => {
+    if (processes.some((p) => p._isNew)) return; // 이미 신규행 있으면 추가 안함
+    const newRow = {
+      processId: "",
+      processNm: "",
+      processInfo: "",
+      isActive: true,
+      _isNew: true,
+    };
+    setProcesses((prev) => [newRow, ...prev]);
+    setSelectedRow(newRow);
   };
 
-  // 5. Context에서 핸들러 등록 함수 가져오기
-  const { setIconHandlers } = useIconContext(); 
+  // ================= 신규 행 입력값 변경 =================
+  const handleNewRowChange = (field, value) => {
+    setProcesses((prev) =>
+      prev.map((p) =>
+        p._isNew
+          ? {
+              ...p,
+              [field]: field === "isActive" ? value === "true" : value,
+            }
+          : p
+      )
+    );
+  };
 
-  // 6. onSearch 아이콘 버튼에 handleSearch 함수를 연결합니다.
+  // ================= 저장 =================
+  const handleSave = async () => {
+    const newRow = processes.find((p) => p._isNew);
+    if (!newRow) return;
+
+    if (!newRow.processId || !newRow.processNm) {
+      alert("공정 ID와 공정명은 필수입니다.");
+      return;
+    }
+
+    try {
+      await axios.post(API_URL, {
+        processId: newRow.processId,
+        processNm: newRow.processNm,
+        processInfo: newRow.processInfo,
+        isActive: newRow.isActive,
+      });
+      await fetchProcesses(searchParams);
+      alert("저장 완료!");
+    } catch (e) {
+      alert(`저장 실패: ${e?.response?.data?.message || e.message}`);
+    }
+  };
+
+  // ================= 삭제 =================
+  const handleDelete = async () => {
+    if (!selectedRow) {
+      alert("삭제할 행을 선택하세요.");
+      return;
+    }
+    if (!window.confirm(`정말 삭제하시겠습니까? (${selectedRow.processId})`))
+      return;
+
+    try {
+      await axios.delete(`${API_URL}/${selectedRow.processId}`);
+      await fetchProcesses(searchParams);
+      alert("삭제 완료!");
+    } catch (e) {
+      alert(`삭제 실패: ${e?.response?.data?.message || e.message}`);
+    }
+  };
+
+  // ================= 아이콘 컨텍스트 연결 =================
   useEffect(() => {
-    setIconHandlers({ onSearch: handleSearch });
-    
-    // 컴포넌트가 사라질 때 등록된 핸들러를 정리(clean-up)합니다.
+    setIconHandlers({
+      onSearch: () => fetchProcesses(searchParams),
+      onNew: handleNew,
+      onSave: handleSave,
+      onDelete: handleDelete,
+    });
     return () => {
-      setIconHandlers({ onSearch: null });
+      setIconHandlers({ onSearch: null, onNew: null, onSave: null, onDelete: null });
     };
-  }, [searchParams]); // searchParams가 바뀔 때마다 최신 상태를 반영한 함수를 다시 등록
+  }, [searchParams, processes, selectedRow]);
 
+  // ================= 검색창 입력 =================
+  const handleSearchChange = (e) => {
+    const { name, value } = e.target;
+    setSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
 
-  
-
+  // ================= 화면 렌더링 =================
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '90vh' }}>
-      {/* ==================== 상단: 검색 그리드 ==================== */}
-      <div style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+    <div style={{ padding: "20px", display: "flex", flexDirection: "column", height: "90vh" }}>
+      {/* 검색영역 */}
+      <div style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
           <div>
             <label htmlFor="processId">공정 ID: </label>
             <input
@@ -89,10 +149,7 @@ export default function ProcessManagement() {
               name="processId"
               value={searchParams.processId}
               onChange={handleSearchChange}
-
-              style={{ border: '1px solid black' }}
-
-
+              style={{ border: "1px solid black" }}
             />
           </div>
           <div>
@@ -103,54 +160,101 @@ export default function ProcessManagement() {
               name="processNm"
               value={searchParams.processNm}
               onChange={handleSearchChange}
-
-              style={{ border: '1px solid black' }} 
+              style={{ border: "1px solid black" }}
             />
           </div>
           <div>
-          <label htmlFor="isActive">활성 여부: </label>
-          <select
-            id="isActive"
-            name="isActive"
-            value={searchParams.isActive === null ? '' : searchParams.isActive} // null일 경우 빈 문자열('') 값으로 매핑
-            onChange={handleSearchChange}
-            style={{ border: '1px solid black', marginLeft: '5px' }}
-          >
-            <option value="">전체</option>
-            <option value="true">활성</option>
-            <option value="false">비활성</option>
-          </select>
-        </div>
+            <label htmlFor="isActive">활성 여부: </label>
+            <select
+              id="isActive"
+              name="isActive"
+              value={searchParams.isActive === null ? "" : searchParams.isActive}
+              onChange={handleSearchChange}
+              style={{ border: "1px solid black", marginLeft: "5px" }}
+            >
+              <option value="">전체</option>
+              <option value="true">활성</option>
+              <option value="false">비활성</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* ==================== 하단: 결과 그리드 ==================== */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-
+      {/* 결과 테이블 */}
+      <div style={{ flex: 1, overflow: "auto" }}>
         {loading ? (
           <div>데이터를 불러오는 중입니다...</div>
         ) : error ? (
           <div>에러가 발생했습니다: {error.message}</div>
         ) : (
-          <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table border="1" style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ backgroundColor: '#f2f2f2' }}>
-                <th style={{ padding: '8px' }}>공정 ID</th>
-                <th style={{ padding: '8px' }}>공정명</th>
-                <th style={{ padding: '8px' }}>공정 정보</th>
-                <th style={{ padding: '8px' }}>활성 여부</th>
+              <tr style={{ backgroundColor: "#f2f2f2" }}>
+                <th style={{ padding: "8px" }}>공정 ID</th>
+                <th style={{ padding: "8px" }}>공정명</th>
+                <th style={{ padding: "8px" }}>공정 정보</th>
+                <th style={{ padding: "8px" }}>활성 여부</th>
               </tr>
             </thead>
             <tbody>
-              {processes.map((process) => (
-                <tr key={process.processId}>
-                  <td style={{ padding: '8px' }}>{process.processId}</td>
-                  <td style={{ padding: '8px' }}>{process.processNm}</td>
-                  <td style={{ padding: '8px' }}>{process.processInfo}</td>
-                  <td style={{ padding: '8px' }}>{process.isActive ? "활성" : "비활성"}</td>
+            {processes.map((process, idx) =>
+              process._isNew ? (
+                <tr key={`new-${idx}`} style={{ backgroundColor: "#fffbe6" }}>
+                  <td style={{ padding: "8px" }}>
+                    <input
+                      style={{ width: "100%", border: "1px solid #ccc", padding: "4px" }}
+                      placeholder="공정 ID"
+                      value={process.processId}
+                      onChange={(e) => handleNewRowChange("processId", e.target.value)}
+                    />
+                  </td>
+                  <td style={{ padding: "8px" }}>
+                    <input
+                      style={{ width: "100%", border: "1px solid #ccc", padding: "4px" }}
+                      placeholder="공정명"
+                      value={process.processNm}
+                      onChange={(e) => handleNewRowChange("processNm", e.target.value)}
+                    />
+                  </td>
+                  <td style={{ padding: "8px" }}>
+                    <input
+                      style={{ width: "100%", border: "1px solid #ccc", padding: "4px" }}
+                      placeholder="공정 정보"
+                      value={process.processInfo}
+                      onChange={(e) => handleNewRowChange("processInfo", e.target.value)}
+                    />
+                  </td>
+                  <td style={{ padding: "8px" }}>
+                    <select
+                      style={{ width: "100%", border: "1px solid #ccc", padding: "4px" }}
+                      value={process.isActive ? "true" : "false"}
+                      onChange={(e) => handleNewRowChange("isActive", e.target.value)}
+                    >
+                      <option value="true">활성</option>
+                      <option value="false">비활성</option>
+                    </select>
+                  </td>
                 </tr>
-              ))}
-            </tbody>
+              ) : (
+                <tr
+                  key={process.processId}
+                  style={{
+                    backgroundColor:
+                      selectedRow?.processId === process.processId ? "#e6f7ff" : "white",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setSelectedRow(process)}
+                >
+                  <td style={{ padding: "8px" }}>{process.processId}</td>
+                  <td style={{ padding: "8px" }}>{process.processNm}</td>
+                  <td style={{ padding: "8px" }}>{process.processInfo}</td>
+                  <td style={{ padding: "8px" }}>
+                    {process.isActive ? "활성" : "비활성"}
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
           </table>
         )}
       </div>

@@ -10,13 +10,16 @@ export default function WorkOrder() {
 
   // 검색 조건
   const initialSearchParams = {
+    workOrderId: "",
     processId: "",
     blockId: "",
     workCenterId: "",
     currentStatus: "",
     priority: "",
-    plannedStartTime: "",
-    plannedEndTime: "",
+    plannedStartTimeFrom: "",
+    plannedStartTimeTo: "",
+    plannedEndTimeFrom: "",
+    plannedEndTimeTo: "",
   };
   const [searchParams, setSearchParams] = useState(initialSearchParams);
 
@@ -39,15 +42,9 @@ export default function WorkOrder() {
   // 검색 실행
   const handleSearch = async () => {
     try {
-      let endpoint = "/search";
       let params = { ...searchParams };
 
-      // 상세조건이 포함된 경우 searchDetail 호출
-      if (params.priority || params.plannedStartTime || params.plannedEndTime) {
-        endpoint = "/searchDetail";
-      }
-
-      const response = await axios.get(`${API_URL}${endpoint}`, { params });
+      const response = await axios.get(`${API_URL}/search`, { params });
       setWorkOrders(response.data);
       setSelectedWorkOrder(response.data.length > 0 ? response.data[0] : null);
     } catch (err) {
@@ -90,8 +87,22 @@ export default function WorkOrder() {
       {/* ================= 상단 검색 그리드 ================= */}
       <div className="border border-gray-300 px-3 py-5 mb-5">
         <div className="flex flex-wrap gap-6">
+
+          {/* 작업지시 ID */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">작업지시 ID:</label>
+            <input
+              type="text"
+              name="workOrderId"
+              value={searchParams.workOrderId}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm w-32"
+            />
+          </div>
+
+          {/* 공정 ID */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">공정 ID:</label>
             <input
               type="text"
               name="processId"
@@ -100,6 +111,8 @@ export default function WorkOrder() {
               className="border px-2 py-1 text-sm w-32"
             />
           </div>
+
+          {/* 블록 ID */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">블록 ID:</label>
             <input
@@ -110,8 +123,10 @@ export default function WorkOrder() {
               className="border px-2 py-1 text-sm w-32"
             />
           </div>
+
+          {/* 작업장 ID */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">검사 일시:</label>
+            <label className="text-sm font-medium">작업장 ID:</label>
             <input
               type="text"
               name="workCenterId"
@@ -120,8 +135,10 @@ export default function WorkOrder() {
               className="border px-2 py-1 text-sm w-32"
             />
           </div>
+
+          {/* 현재 상태 */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">결과:</label>
+            <label className="text-sm font-medium">현재 상태:</label>
             <select
               name="currentStatus"
               value={searchParams.currentStatus}
@@ -129,21 +146,71 @@ export default function WorkOrder() {
               className="border px-2 py-1 text-sm w-32"
             >
               <option value="">전체</option>
-              <option value="pass">합격</option>
-              <option value="fail">불합격</option>
-              <option value="pending">보류</option>
+              <option value="waiting">대기</option>
+              <option value="in_progress">진행중</option>
+              <option value="completed">완료</option>
             </select>
           </div>
+
+          {/* 우선순위 */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">불량 유형:</label>
-            <input
-              type="number"
+            <label className="text-sm font-medium">우선순위:</label>
+            <select
               name="priority"
               value={searchParams.priority}
               onChange={handleSearchChange}
-              className="border px-2 py-1 text-sm w-20"
+              className="border px-2 py-1 text-sm w-32"
+            >
+              <option value="">전체</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+          {/* 계획 시작일 (From ~ To) */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">계획 시작일:</label>
+            <input
+              type="datetime-local"
+              name="plannedStartTimeFrom"
+              value={searchParams.plannedStartTimeFrom}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm"
+            />
+            <span>~</span>
+            <input
+              type="datetime-local"
+              name="plannedStartTimeTo"
+              value={searchParams.plannedStartTimeTo}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm"
             />
           </div>
+
+          {/* 계획 종료일 (From ~ To) */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">계획 종료일:</label>
+            <input
+              type="datetime-local"
+              name="plannedEndTimeFrom"
+              value={searchParams.plannedEndTimeFrom}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm"
+            />
+            <span>~</span>
+            <input
+              type="datetime-local"
+              name="plannedEndTimeTo"
+              value={searchParams.plannedEndTimeTo}
+              onChange={handleSearchChange}
+              className="border px-2 py-1 text-sm"
+            />
+          </div>
+
+          {/* 초기화 버튼 */}
           <button
             type="button"
             onClick={handleReset}
@@ -153,6 +220,7 @@ export default function WorkOrder() {
           </button>
         </div>
       </div>
+
 
       <h2 className="mb-2 text-lg font-semibold">작업지시 목록</h2>
 
