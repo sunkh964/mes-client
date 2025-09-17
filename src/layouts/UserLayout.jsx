@@ -87,14 +87,14 @@ export default function UserLayout({onLogout, openMenus, setOpenMenus }) {
       {/* 메뉴 리스트 영역 */}
       <div className="flex-1 pt-2 pl-2 pr-2 py-0 overflow-hidden">
         <div className="bg-[#4B709E] px-3 text-base font-semibold"
-              style={{width:"60%", fontSize: "0.8rem",
+              style={{width:"150px", fontSize: "0.8rem",
                       WebkitBorderTopRightRadius: "10px", color: 'white'
               }}
         >
           = 프로그램 목록
         </div>
         <ul
-          className="h-full max-h-full px-5 py-6 space-y-6 border border-gray-300 bg-gray-200 overflow-auto"
+          className="w-[240px] h-full max-h-full px-5 py-6 space-y-6 border border-gray-300 bg-gray-200 overflow-auto"
           style={{ 
             boxShadow: "0px 5px 8px rgba(0, 0, 0, 0.5)",
             maxHeight: '100%',

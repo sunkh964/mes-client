@@ -233,20 +233,43 @@ export default function Shipment() {
 
       {/* ==================== 출하 상세 ==================== */}
       <h3 className="text-lg font-semibold mb-2">출하 상세</h3>
-      <div className="border border-gray-300 rounded p-4">
-        <div className="grid grid-cols-2 gap-6 text-sm">
-          <div>출하번호: {selectedShipment?.shipmentId || "-"}</div>
-          <div>상태: {selectedShipment ? renderStatus(selectedShipment.status) : "-"}</div>
-          <div>선박코드: {selectedShipment?.vesselId || "-"}</div>
-          <div>수주번호: {selectedShipment?.salesOrderId || "-"}</div>
-          <div>고객번호: {selectedShipment?.customerId || "-"}</div>
-          <div>승인자: {selectedShipment?.approvedBy || "-"}</div>
-          <div>승인일시: {formatDateTime(selectedShipment?.approvedDate, true)}</div>
-          <div>출하 예정일: {formatDateTime(selectedShipment?.plannedShipDate, true)}</div>
-          <div>출하일: {formatDateTime(selectedShipment?.actualShipDate, true)}</div>
-          <div>비고: {selectedShipment?.remark || "-"}</div>
-        </div>
+      <div className="border border-gray-300 rounded overflow-hidden">
+        <table className="w-full border-collapse text-sm text-center">
+          <tbody>
+            <tr className="">
+              <td className="border p-2 py-3 w-1/4 font-semibold">출하번호</td>
+              <td className="border p-2 w-1/4 ">{selectedShipment?.shipmentId || "-"}</td>
+              <td className="border p-2 py-3 w-1/4 font-semibold">상태</td>
+              <td className="border p-2 w-1/4">{selectedShipment ? renderStatus(selectedShipment.status) : "-"}</td>
+            </tr>
+            <tr>
+              <td className="border p-2 py-3 font-semibold">선박코드</td>
+              <td className="border p-2">{selectedShipment?.vesselId || "-"}</td>
+              <td className="border p-2 py-3 font-semibold">수주번호</td>
+              <td className="border p-2">{selectedShipment?.salesOrderId || "-"}</td>
+            </tr>
+            <tr>
+              <td className="border p-2 py-3 font-semibold">고객번호</td>
+              <td className="border p-2">{selectedShipment?.customerId || "-"}</td>
+              <td className="border p-2 py-3 font-semibold">승인자</td>
+              <td className="border p-2">{selectedShipment?.approvedBy || "-"}</td>
+            </tr>
+            <tr>
+              <td className="border p-2 py-3 font-semibold">승인일시</td>
+              <td className="border p-2">{formatDateTime(selectedShipment?.approvedDate, true)}</td>
+              <td className="border p-2 py-3 font-semibold">출하 예정일</td>
+              <td className="border p-2">{formatDateTime(selectedShipment?.plannedShipDate, true)}</td>
+            </tr>
+            <tr>
+              <td className="border p-2 py-3 font-semibold">출하일</td>
+              <td className="border p-2">{formatDateTime(selectedShipment?.actualShipDate, true)}</td>
+              <td className="border p-2 py-3 font-semibold">비고</td>
+              <td className="border p-2">{selectedShipment?.remark || "-"}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+
     </div>
   );
 }
