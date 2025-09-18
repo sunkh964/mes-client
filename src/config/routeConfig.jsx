@@ -8,7 +8,7 @@ const routesConfig = [
       { name: "공정 라우팅 관리", path: "/main/processes" },
       { name: "작업장/설비 관리", path: "/main/work-centers" }, // 루트 수정 필요
       { name: "작업자/권한 관리", path: "/main/workers" },
-      { name: "생산계획 조회", path: "/main/project-plans" },
+      // { name: "생산계획 조회", path: "/main/project-plans" },
     ],
   },
   {
