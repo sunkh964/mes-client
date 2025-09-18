@@ -168,12 +168,22 @@ export default function WorkInProgress() {
                 <div style={{ overflow: 'auto', flex: 1 }}>
                   <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ backgroundColor: '#f2f2f2' }}>
-                      <tr><th>지시 ID</th><th>지시 내용</th><th>상태</th><th>작업장</th></tr>
+                      <tr>
+                        <th>No.</th>
+                        <th>지시 ID</th>
+                        <th>지시 내용</th>
+                        <th>상태</th>
+                        <th>작업장</th>
+                      </tr>
                     </thead>
                     <tbody>
-                      {workOrders.map(order => (
+                      {workOrders.map((order,idx) => (
                         <tr key={order.workOrderId} onClick={() => handleSelectOrder(order)} style={{ cursor: 'pointer', backgroundColor: selectedOrder?.workOrderId === order.workOrderId ? '#e3f2fd' : 'transparent' }}>
-                          <td>{order.workOrderId}</td><td>{order.instruction}</td><td>{order.currentStatus}</td><td>{order.workCenterId}</td>
+                          <td>{idx+1}</td>
+                          <td>{order.workOrderId}</td>
+                          <td>{order.instruction}</td>
+                          <td>{order.currentStatus}</td>
+                          <td>{order.workCenterId}</td>
                         </tr>
                       ))}
                     </tbody>

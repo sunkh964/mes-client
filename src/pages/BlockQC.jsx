@@ -141,6 +141,7 @@ export default function BlockQC() {
         >
           <thead style={{ backgroundColor: "#f2f2f2" }}>
             <tr>
+              <th className="p-3">No.</th>
               <th className="p-3">블록품질 ID</th>
               <th className="p-3">작업지시 ID</th>
               <th className="p-3">블록 ID</th>
@@ -161,7 +162,7 @@ export default function BlockQC() {
                 </td>
               </tr>
             ) : (
-              blockQC.map((block) => (
+              blockQC.map((block, idx) => (
                 <tr
                   key={block.blockQCId}
                   onClick={() => handleSelectBlock(block)}
@@ -171,6 +172,7 @@ export default function BlockQC() {
                       selectedBlockQC?.blockQCId === block.blockQCId ? "#cce5ff" : "white",
                   }}
                 >
+                  <td className="p-3">{idx+1}</td>
                   <td className="p-3">{block.blockQCId}</td>
                   <td className="p-3">{block.workOrderId}</td>
                   <td className="p-3">{block.blockId}</td>

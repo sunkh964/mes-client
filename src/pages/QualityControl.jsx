@@ -51,10 +51,27 @@ export default function QualityControl() {
       <h1 className="text-2xl font-bold mb-6">품질 검사 목록</h1>
       <div className="bg-white shadow-md rounded-lg">
         <table className="min-w-full">
-          <thead><tr className="bg-gray-100"><th className="py-3 px-4">검사ID</th><th className="py-3 px-4">작업지시ID</th><th className="py-3 px-4">검사자ID</th><th className="py-3 px-4">검사일</th><th className="py-3 px-4">결과</th><th className="py-3 px-4">메모</th></tr></thead>
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="py-3 px-4">No.</th>
+              <th className="py-3 px-4">검사ID</th>
+              <th className="py-3 px-4">작업지시ID</th>
+              <th className="py-3 px-4">검사자ID</th>
+              <th className="py-3 px-4">검사일</th>
+              <th className="py-3 px-4">결과</th>
+              <th className="py-3 px-4">메모</th>
+            </tr>
+          </thead>
           <tbody>
-            {qcList.map((qc) => (
-              <tr key={qc.qcId} className="border-b hover:bg-gray-50"><td className="py-3 px-4">{qc.qcId}</td><td className="py-3 px-4">{qc.workOrderId}</td><td className="py-3 px-4">{qc.inspectorId}</td><td className="py-3 px-4">{new Date(qc.inspectionDate).toLocaleString()}</td><td className="py-3 px-4">{qc.result}</td><td className="py-3 px-4">{qc.notes}</td></tr>
+            {qcList.map((qc,idx) => (
+              <tr key={qc.qcId} className="border-b hover:bg-gray-50">
+                <td className="py-3 px-4">{idx +1}</td>
+                <td className="py-3 px-4">{qc.qcId}</td>
+                <td className="py-3 px-4">{qc.workOrderId}</td>
+                <td className="py-3 px-4">{qc.inspectorId}</td>
+                <td className="py-3 px-4">{new Date(qc.inspectionDate).toLocaleString()}</td>
+                <td className="py-3 px-4">{qc.result}</td><td className="py-3 px-4">{qc.notes}</td>
+              </tr>
             ))}
           </tbody>
         </table>

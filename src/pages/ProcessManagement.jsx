@@ -225,6 +225,7 @@ export default function ProcessManagement() {
           <table border="1" style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ backgroundColor: "#f2f2f2" }}>
+                <th style={{ padding: "8px" }}>No.</th>
                 <th style={{ padding: "8px" }}>공정 ID</th>
                 <th style={{ padding: "8px" }}>공정명</th>
                 <th style={{ padding: "8px" }}>공정 설명</th>
@@ -348,6 +349,7 @@ export default function ProcessManagement() {
                     }}
                     onClick={() => setSelectedRow(process)}
                   >
+                    <td style={{ padding: "8px" }}>{idx + 1}</td> 
                     <td style={{ padding: "8px" }}>{process.processId}</td>
                     <td style={{ padding: "8px" }}>{process.processNm}</td>
                     <td style={{ padding: "8px" }}>{process.processInfo}</td>

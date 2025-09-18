@@ -163,6 +163,7 @@ export default function MaterialQC() {
         >
           <thead style={{ backgroundColor: "#f2f2f2" }}>
             <tr>
+              <th className="py-3 px-4">No.</th>
               <th className="p-3">검사 ID</th>
               <th className="p-3">발주 ID</th>
               <th className="p-3">발주 상세 ID</th>
@@ -187,8 +188,9 @@ export default function MaterialQC() {
                 </td>
               </tr>
             ) : (
-              materialQC.map((qc) => (
+              materialQC.map((qc,idx) => (
                 <tr key={qc.qcId}>
+                  <td className="p-3">{idx+1}</td>
                   <td className="p-3">{qc.qcId}</td>
                   <td className="p-3">{qc.purchaseOrderId}</td>
                   <td className="p-3">{qc.orderDetailId}</td>
