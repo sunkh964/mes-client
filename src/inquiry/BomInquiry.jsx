@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { getToken } from '../utils/api';
 import axios from 'axios';
 
 // 요청 API 주소
@@ -14,14 +15,28 @@ export default function BomInquiry() {
   const fetchBoms = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const response = await axios.get(BOM_PROXY_API_URL);
-    } catch (e) {
-      setError(e);
-    } finally {
-      setLoading(false);
+    
+    const token = getToken();
+    if (!token) {
+        setError(new Error("로그인이 필요합니다."));
+        setLoading(false);
+        return;
     }
-  }, []);
+
+    try {
+        // axios 요청에 headers를 추가하여 토큰을 함께 보냅니다.
+        const response = await axios.get(BOM_PROXY_API_URL, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+        });
+        setBoms(response.data || []);
+    } catch (e) {
+        setError(e);
+    } finally {
+        setLoading(false);
+    }
+    }, []);
 
   // 컴포넌트가 처음 로드될 때 BOM 데이터를 가져옵니다.
   useEffect(() => {
@@ -39,23 +54,30 @@ export default function BomInquiry() {
       <table border="1" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
         <thead style={{ backgroundColor: '#f2f2f2' }}>
           <tr>
-            {/* TODO: ERP에서 받은 실제 BOM 데이터의 필드명에 맞게 헤더를 수정하세요. */}
+            {/* ★★★ 1. 헤더(컬럼명) 수정 ★★★ */}
             <th>BOM ID</th>
-            <th>자재 ID</th>
+            <th>선박명</th>
+            <th>공정 ID</th>
             <th>자재명</th>
-            <th>수량</th>
+            <th>소요수량</th>
             <th>단위</th>
+            <th>비고</th>
           </tr>
         </thead>
         <tbody>
-          {boms.map((bomItem, index) => (
-            <tr key={index}>
-              {/* TODO: ERP에서 받은 실제 BOM 데이터의 필드명에 맞게 셀을 수정하세요. */}
+          {boms.map((bomItem) => (
+            // ★★★ 2. key를 index 대신 고유 ID로 변경 ★★★
+            <tr key={bomItem.bomId}>
+              {/* ★★★ 3. 실제 데이터 필드명에 맞게 수정 ★★★ */}
               <td>{bomItem.bomId}</td>
-              <td>{bomItem.materialId}</td>
-              <td>{bomItem.materialName}</td>
-              <td>{bomItem.quantity}</td>
+              {/* vessel 객체가 있을 경우 vesselNm을 표시, 없으면 '-' 표시 */}
+              <td>{bomItem.vessel?.vesselNm || '-'}</td>
+              <td>{bomItem.processId}</td>
+              {/* material 객체가 있을 경우 materialNm을 표시 */}
+              <td>{bomItem.material?.materialNm || '-'}</td>
+              <td>{bomItem.requiredQuantity}</td>
               <td>{bomItem.unit}</td>
+              <td>{bomItem.remark}</td>
             </tr>
           ))}
         </tbody>
