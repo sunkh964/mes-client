@@ -11,7 +11,7 @@ import WorkcenterManagement from "./pages/WorkcenterManagement";
 import EquipmentManagement from './pages/EquipmentManagement';
 
 import WorkerInquiry from './inquiry/WorkerInquiry';
-// import CheckProjectPlan from './inquiry/ProjectPlanInquiry';
+import CheckProjectPlan from './inquiry/ProjectPlanInquiry';
 import WorkOrderInquiry from "./pages/WorkOrderInquiry";
 import MaterialUsage from './pages/MaterialUsage';
 import MaterialOutput from './pages/MaterialOutput';
@@ -113,7 +113,7 @@ export default function App() {
           <Route path="work-centers" element={<WorkcenterManagement />} />
           <Route path="equipment" element={<EquipmentManagement />} />
           <Route path="workers" element={<WorkerInquiry />} />
-          {/* <Route path="project-plans" element={<CheckProjectPlan />} /> */}
+          <Route path="project-plans" element={<CheckProjectPlan />} />
 
         </Route>
         
