@@ -1,0 +1,198 @@
+[33mcommit 0037d24d0080dc3a9115a1e4e3661219733dff14[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev-han964[m[33m)[m
+Merge: e33a96e 4163652
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Thu Sep 18 11:16:11 2025 +0900
+
+    250919 프로세스 업데이트
+
+[33mcommit e33a96e034d1fe83bdf2848941c64fcf68119bfa[m[33m ([m[1;31morigin/dev-han964[m[33m)[m
+Author: sunkh964 <sunkh964@gmail.com>
+Date:   Thu Sep 18 06:49:53 2025 +0900
+
+    250918 1,2,3수정
+
+[33mcommit 24d939899c1a5a3455da3ec6dd2d0e9d3b6abbbd[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Wed Sep 17 12:51:17 2025 +0900
+
+    20250917 api boms 조회
+
+[33mcommit fd6fee07269b9bdebe90767040ed1c9aed3d3603[m
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Tue Sep 16 21:28:10 2025 +0900
+
+    250916 품질검사
+
+[33mcommit 6e16045272f70aacc2174b6edae9dbd7049d1693[m
+Merge: b23a242 99c5b6c
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Tue Sep 16 18:35:37 2025 +0900
+
+    250916 출하병합
+
+[33mcommit 99c5b6c0fe2e08a6c21ed8ba6a4e419a9b17c854[m
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Tue Sep 16 18:34:01 2025 +0900
+
+    250916 출하
+
+[33mcommit b23a242462b54c6a73af4261af7958b6ba5c0067[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Tue Sep 16 17:32:28 2025 +0900
+
+    20250916 자재사용등록 조회 완료
+
+[33mcommit f6151715d9015b5644637b0321de16cbf14148de[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Tue Sep 16 12:17:45 2025 +0900
+
+    20250916 작업실행/실적등록 조회 완료
+
+[33mcommit 6e7eb96a3854c383178c1d87fd1a1133c74a5224[m
+Merge: 7ab7794 73dfccd
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Mon Sep 15 19:09:07 2025 +0900
+
+    250915 작업지시
+
+[33mcommit 73dfccdcbf79cbe353e64592b730e33dfd4c8149[m
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Mon Sep 15 19:07:41 2025 +0900
+
+    250915 작업지시
+
+[33mcommit 7ab7794fecd970cb76140b522feb4e74b0b9331c[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Mon Sep 15 18:44:53 2025 +0900
+
+    20250915 생산계획조회 UI 완료
+
+[33mcommit 0c7185cd78a7ced72538dc7ba52935366c845a2e[m
+Merge: cdf466a 8acb38a
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Mon Sep 15 18:39:45 2025 +0900
+
+    Merge branch 'dev-choi118'
+
+[33mcommit 8acb38a6ec64651b80513a1e768eca6cb45a7d23[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Mon Sep 15 18:30:21 2025 +0900
+
+    20250915 생산계획 UI만 완료
+
+[33mcommit 06cc9c60bb8fd9e2ac5982848a8fc53df40458a4[m
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Mon Sep 15 18:13:42 2025 +0900
+
+    250915 블록생산계획
+
+[33mcommit 9faf720f9fc0946512181586c536fbaecde0aa91[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Fri Sep 5 10:36:52 2025 +0900
+
+    어제 다 하고 같는데 왜 또 commit하라고 하는겨?
+
+[33mcommit a92bfa31cac20344a8310b2cefd1dfbcf296df44[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Thu Sep 4 10:10:38 2025 +0900
+
+    롤백
+
+[33mcommit 8f05a3242d7759090a20ebe89a4ae07913680124[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Wed Sep 3 16:47:56 2025 +0900
+
+    9/3 기본 화면 -> 대시보드로 수정. 출하관리 메뉴 추가
+
+[33mcommit 4597a08250f1f7c8b10b704eabe48be13b0d8d14[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Wed Sep 3 16:29:05 2025 +0900
+
+    9/3 기본 페이지를 대시보드로, worker, shipment 페이지 추가. 네트워크 에러 뜸
+
+[33mcommit 9d9b4d2709ad3ed01f716ba218cd50e46ad4610e[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Tue Sep 2 15:41:52 2025 +0900
+
+    250902
+
+[33mcommit 4ccd250f88f31dc00c6b88dce8c7a675c3fa0257[m
+Merge: f014102 43e6d62
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Tue Sep 2 15:27:03 2025 +0900
+
+    250902
+
+[33mcommit 86fe32c733c41a31a9df94b62de5e64eaea9c4b4[m
+Merge: ca50ed0 6691567
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Tue Sep 2 11:53:21 2025 +0900
+
+    250902 merge
+
+[33mcommit 3de45b6f00932697edb8f624ce7918f478a90111[m
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Mon Sep 1 18:15:54 2025 +0900
+
+    250901 틀 조정
+
+[33mcommit a4cfb6d0994b36ec832f702d6c0b47000f24f8ef[m
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Fri Aug 29 18:37:18 2025 +0900
+
+    250829 로그인...
+
+[33mcommit 43e6d620f5eb4f3dcdb085e71ed2bdd5f9bdae4d[m
+Merge: f157966 ca50ed0
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Fri Aug 29 15:25:23 2025 +0900
+
+    8/25일 수정본
+
+[33mcommit ca50ed031732c946483a19e7f006b231e9e60a59[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Fri Aug 29 14:54:51 2025 +0900
+
+    메인 문제생기면 창문으로 뛰어내리겠습니다
+
+[33mcommit 55c43d6e1f362e09ecfb9617591dc89aa50c6606[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Tue Aug 26 12:25:56 2025 +0900
+
+    주소 설정 완료. 기능 정리 필요
+
+[33mcommit d8ba16bdc92443513365e525ab38cda11cf69b74[m
+Author: sunkh964 <sunkh964@gmail.com>
+Date:   Tue Aug 26 07:43:03 2025 +0900
+
+    250826
+
+[33mcommit f157966f08ae7f1b6dbcfc97b7bc2ff0de8a600f[m[33m ([m[1;31morigin/choi118[m[33m)[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Mon Aug 25 16:59:17 2025 +0900
+
+    대시보드 추가
+
+[33mcommit b8dda645922be5f10435d83f2882253f52644b55[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Mon Aug 25 12:33:41 2025 +0900
+
+    기능 초안
+
+[33mcommit eb006b167cac0e9447f875120a46a4cea3a71be2[m
+Author: MallangDanbi <2122204@donga.ac.kr>
+Date:   Sun Aug 24 18:01:51 2025 +0900
+
+    스마트팩토리mes뼈대추가
+
+[33mcommit 2082131116dde2652f2dd96d21af9134c1546ac5[m
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Fri Aug 22 19:22:28 2025 +0900
+
+    250822
+
+[33mcommit bd619dae3f5e83f71dacb28b3e92ed488ee32898[m
+Author: sunkh964 <sunk964@gmail.com>
+Date:   Fri Aug 22 18:04:36 2025 +0900
+
+    커밋메세지

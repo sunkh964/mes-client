@@ -13,16 +13,29 @@ import EquipmentManagement from './pages/EquipmentManagement';
 import WorkerManagement from './pages/WorkerManagement';
 import CheckProjectPlan from './pages/CheckProjectPlan';
 import WorkOrderInquiry from "./pages/WorkOrderInquiry";
+import MaterialUsage from './pages/MaterialUsage';
 import MaterialOutput from './pages/MaterialOutput';
 import MaterialInventory from './pages/MaterialInventory';
 import QualityControl from './pages/QualityControl';
 import DefectReport from './pages/DefectReport';
-// import WorkResultLogging from './pages/WorkResultLogging';
+
 import { useEffect, useState } from "react";
 import { getToken, removeToken } from './utils/api';
 import { decodeJwt} from './utils/decodeJwt';
+
 import BlockPlan from "./pages/BlockPlan";
 import WorkOrder from "./pages/WorkOrder";
+
+
+import WorkInProgress from "./pages/WorkInProgress";
+import WorkResult from "./pages/WorkResult";
+import MaterialSelectionModal from "./pages/MaterialSelectionModal"
+import BlockQC from "./pages/BlockQC";
+import Shipment from "./pages/Shipment";
+import MaterialQC from "./pages/MaterialQC";
+
+// 테스트
+import BomInquiry from "./inquiry/BomInquiry";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -108,8 +121,6 @@ export default function App() {
         
         {/* 생산 관리 */}
         <Route path="produce">
-
-          
           <Route path="blockPlans" element={<BlockPlan/>} />
           <Route path="workOrders" element={<WorkOrder />} /> 
           <Route path="workorder-management" element={<WorkOrderInquiry />} /> {/* 삭제해야할듯 */}
@@ -118,27 +129,33 @@ export default function App() {
         </Route>
         
         {/* 작업지시 관리 */}
-        <Route path="process">
-          
-          {/* <Route path="results-log" element={<WorkResultLogging />} /> 삭제해야할듯 */}
+        <Route path="progress">
+           <Route path="workinprogress" element={<WorkInProgress />} />
+           <Route path="work-results" element={<WorkResult />} />
         </Route>
         
         {/* 자재 관리 */}
         <Route path="materials">
-          {/* <Route path="input" element={<MaterialInput />} /> */}
+          <Route path="usage" element={<MaterialUsage />} />
           <Route path="output" element={<MaterialOutput />} /> {/* 삭제해야할듯 */}
           <Route path="inventory" element={<MaterialInventory />} /> {/* 삭제해야할듯 */}
         </Route>
 
         {/* 품질 관리 */}
         <Route path="quality">
-          <Route path="inspection" element={<QualityControl />} />
+          <Route path="materialQC" element={<MaterialQC/>} />
+          <Route path="blockQC" element={<BlockQC/>}/>
           <Route path="defects" element={<DefectReport />} />
         </Route>
 
-        {/* 설비 관리 - 삭제해야함  */}
-        <Route path="equipment">
-          <Route path="equipment-management" element={<EquipmentManagement />} />
+        {/* 출하 관리*/}
+        <Route path="shipment">
+          <Route index element={<Shipment />} />   
+        </Route>
+
+        {/* 조회 테스트  */}
+        <Route path="test">
+          <Route path="boms" element={<BomInquiry />} />
         </Route>
 
       </Route>

@@ -27,18 +27,23 @@ export default function WorkResults() {
   // --- 2. 데이터 조회 함수 ---
   // 백엔드 API로부터 작업 실적 데이터를 가져오는 함수입니다.
   // useCallback으로 감싸서 불필요한 재생성을 방지합니다.
-  const fetchAllMaterials = useCallback(async () => {
-  setLoading(true);
-  setError(null);
-  try {
-    const response = await axios.get(MATERIALS_API_URL);
-    setAllMaterials(response.data);
-  } catch (err) {
-    setError(err);
-  } finally {
-    setLoading(false);
-  }
-}, []);
+  const fetchResults = useCallback(async (currentFilters = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 값이 있는 필터만 골라서 쿼리 파라미터로 만듭니다.
+      // 예: { workOrderId: '1', employeeId: '' } -> ?workOrderId=1
+      const params = Object.fromEntries(
+        Object.entries(currentFilters).filter(([_, value]) => value !== '' && value !== null)
+      );
+      const response = await axios.get(WORK_RESULT_API_URL, { params });
+      setResults(response.data);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // --- 3. 이벤트 핸들러 ---
   // 사용자의 입력이나 클릭에 반응하는 함수들입니다.
