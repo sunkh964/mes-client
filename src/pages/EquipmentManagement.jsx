@@ -39,12 +39,18 @@ export default function EquipmentManagement({ workCenterId }) {
           <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: '#eee' }}>
-                <th>설비 ID</th><th>설비명</th><th>타입</th><th>활성여부</th>
+                <th>No.</th>
+                <th>설비 ID</th>
+                <th>설비명</th>
+                <th>타입</th>
+                <th>활성여부</th>
               </tr>
             </thead>
             <tbody>
-              {equipment.map(eq => (
+              {equipment.map((eq , idx) => (
                 <tr key={eq.equipmentId}>
+                  <td>{idx+1}</td>
+                  <td>{eq.equipmentId}</td>
                   <td>{eq.equipmentId}</td>
                   <td>{eq.equipmentNm}</td>
                   <td>{eq.equipmentType}</td>

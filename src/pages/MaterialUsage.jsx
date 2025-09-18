@@ -229,6 +229,7 @@ export default function MaterialUsage() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ backgroundColor: "#eef1f5" }}>
+              <th style={{ padding: "12px", border: "1px solid #ddd" }}>No.</th>
               <th style={{ padding: "12px", border: "1px solid #ddd" }}>자재 ID</th>
               <th style={{ padding: "12px", border: "1px solid #ddd" }}>자재명</th>
               <th style={{ padding: "12px", border: "1px solid #ddd" }}>현재고</th>
@@ -236,8 +237,11 @@ export default function MaterialUsage() {
             </tr>
           </thead>
           <tbody>
-            {selectedRows.map((row) => (
+            {selectedRows.map((row,index) => (
               <tr key={row.materialId}>
+                <td style={{ padding: "12px", border: "1px solid #ddd" }}>
+                  {index+1}
+                </td>
                 <td style={{ padding: "12px", border: "1px solid #ddd" }}>
                   {row.materialId}
                 </td>
@@ -292,6 +296,7 @@ export default function MaterialUsage() {
           <table className="w-full border border-gray-200">
             <thead>
               <tr style={{ backgroundColor: "#eef1f5" }}>
+                <th className="p-2 px-4 border border-gray-200">No.</th>
                 <th className="p-2 px-4 border border-gray-200">작업내역 ID</th>
                 <th className="p-2 px-4 border border-gray-200">작업지시 ID</th>
                 <th className="p-2 px-4 border border-gray-200">자재 ID</th>
@@ -314,6 +319,7 @@ export default function MaterialUsage() {
               ) : (
                 materialInputs.map((row, idx) => (
                   <tr key={idx}>
+                    <td className="p-2 px-4 border border-gray-200">{idx+1}</td>
                     <td className="p-2 px-4 border border-gray-200">{row.resultId}</td>
                     <td className="p-2 px-4 border border-gray-200">{row.workOrderId}</td>
                     <td className="p-2 px-4 border border-gray-200">{row.materialId}</td>

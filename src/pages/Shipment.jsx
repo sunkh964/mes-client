@@ -192,6 +192,7 @@ export default function Shipment() {
         <table className="w-full border-collapse text-sm">
           <thead style={{ backgroundColor: "#f2f2f2" }}>
             <tr>
+              <th className="p-2">No.</th>
               <th className="p-2">출하번호</th>
               <th className="p-2">수주번호</th>
               <th className="p-2">고객번호</th>
@@ -209,7 +210,7 @@ export default function Shipment() {
                 </td>
               </tr>
             ) : (
-              shipments.map((ship) => (
+              shipments.map((ship, idx) => (
                 <tr
                   key={ship.shipmentId}
                   onClick={() => setSelectedShipment(ship)}
@@ -217,6 +218,7 @@ export default function Shipment() {
                     selectedShipment?.shipmentId === ship.shipmentId ? "bg-blue-100" : ""
                   }`}
                 >
+                  <td className="p-2">{idx+1}</td>
                   <td className="p-2">{ship.shipmentId}</td>
                   <td className="p-2">{ship.salesOrderId}</td>
                   <td className="p-2">{ship.customerId}</td>
