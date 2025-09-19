@@ -21,7 +21,7 @@ import DefectReport from './pages/DefectReport';
 
 import { useEffect, useState } from "react";
 import { getToken, removeToken } from './utils/api';
-import { decodeJwt} from './utils/decodeJwt';
+import { decodeJwt } from './utils/decodeJwt';
 
 import BlockPlan from "./pages/BlockPlan";
 import WorkOrder from "./pages/WorkOrder";
@@ -62,11 +62,11 @@ export default function App() {
   }, []);
 
   // 새로고침
-  useEffect(()=>{
-    if(isLoggedIn){
+  useEffect(() => {
+    if (isLoggedIn) {
       localStorage.setItem("lastPath", location.pathname);
     }
-  },[location,isLoggedIn]);
+  }, [location, isLoggedIn]);
 
   // 로그인 처리 함수: Login 컴포넌트로부터 호출됨
   // Login 컴포넌트에서 이미 로컬 스토리지에 값을 저장하므로, App에서는 상태만 업데이트합니다.
@@ -77,7 +77,9 @@ export default function App() {
     setUsername(storedEmployeeId);
     setRole(storedRole);
 
-    localStorage.setItem("lastPath", "/main/processes");
+    //localStorage.setItem("lastPath", "/main/processes");
+    //로그인 직후에는 lastPath무시하고 바로 processes로이동
+    localStorage.removeItem("lastPath");
   };
 
   // 로그아웃 처리 함수: UserLayout으로부터 호출됨
@@ -90,22 +92,19 @@ export default function App() {
 
   return (
     <Routes>
-      {/* 로그인 페이지는 Layout과 분리 */}
-      <Route path="/login" element={isLoggedIn ? <Navigate to="/main/processes" replace /> 
-                                                : <Login onLogin={handleLogin} />} />
+      {/* 로그인 페이지는 Layout과 분리-로그인 상태일때는 last Path로 이동*/}
+      <Route path="/login" element={isLoggedIn ?
+        <Navigate to={localStorage.getItem("lastPath") || "/main/processes"} replace />
+        : <Login onLogin={handleLogin} />} />
 
       {/* Layout을 사용하는 모든 페이지: 로그인 상태가 아니면 로그인 페이지로 리다이렉트 */}
-      <Route path="/" element={isLoggedIn 
-                               ? <Layout role={role} onLogout={handleLogout} username={username} /> 
-                               : <Navigate to="/login" replace />}>
-        
+      <Route path="/" element={isLoggedIn
+        ? <Layout role={role} onLogout={handleLogout} username={username} />
+        : <Navigate to="/login" replace />}>
+
         {/* 웹사이트의 첫 페이지('/')일 때 기본으로 보여줄 페이지 */}
-        <Route index 
-          element={<Navigate
-            to={localStorage.getItem("lastPath") || "/main/processes"}
-            replace
-          />} />
-        
+        <Route index element={<Navigate to={localStorage.getItem("lastPath") || "/main/processes"} replace />} />
+
         {/* 기준 정보 관리 */}
         <Route path="main">
           <Route path="dashboard" element={<Dashboard />} />
@@ -116,22 +115,22 @@ export default function App() {
           <Route path="project-plans" element={<CheckProjectPlan />} />
 
         </Route>
-        
+
         {/* 생산 관리 */}
         <Route path="produce">
-          <Route path="blockPlans" element={<BlockPlan/>} />
-          <Route path="workOrders" element={<WorkOrder />} /> 
+          <Route path="blockPlans" element={<BlockPlan />} />
+          <Route path="workOrders" element={<WorkOrder />} />
           <Route path="workorder-management" element={<WorkOrderInquiry />} /> {/* 삭제해야할듯 */}
           <Route path="orders" element={<WorkOrderInquiry />} />
 
         </Route>
-        
+
         {/* 작업지시 관리 */}
         <Route path="progress">
-           <Route path="workinprogress" element={<WorkInProgress />} />
-           <Route path="work-results" element={<WorkResult />} />
+          <Route path="workinprogress" element={<WorkInProgress />} />
+          <Route path="work-results" element={<WorkResult />} />
         </Route>
-        
+
         {/* 자재 관리 */}
         <Route path="materials">
           <Route path="usage" element={<MaterialUsage />} />
@@ -141,14 +140,14 @@ export default function App() {
 
         {/* 품질 관리 */}
         <Route path="quality">
-          <Route path="materialQC" element={<MaterialQC/>} />
-          <Route path="blockQC" element={<BlockQC/>}/>
+          <Route path="materialQC" element={<MaterialQC />} />
+          <Route path="blockQC" element={<BlockQC />} />
           <Route path="defects" element={<DefectReport />} />
         </Route>
 
         {/* 출하 관리*/}
         <Route path="shipment">
-          <Route index element={<Shipment />} />   
+          <Route index element={<Shipment />} />
         </Route>
 
         {/* 조회 테스트  */}
