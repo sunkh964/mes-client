@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useIconContext } from "../utils/IconContext";
 import { useNavigate } from 'react-router-dom';
 import WorkResult from './WorkResult'; // 관리자용 뷰 import
+import TableGrid from "../layouts/TableGrid";
 
 const WORK_ORDER_API_URL = "http://localhost:8082/api/workOrders";
 const WORK_RESULT_API_URL = "http://localhost:8082/api/work-results";
@@ -141,6 +142,15 @@ export default function WorkInProgress() {
     return () => setIconHandlers({ onSearch: null });
   }, [fetchWorkOrders, setIconHandlers]);
 
+  // ================= 컬럼 정의 =================
+  const columns = [
+    { header: "No.", accessor: "no", render: (_, idx) => idx + 1 },
+    { header: "지시 ID", accessor: "workOrderId" },
+    { header: "지시 내용", accessor: "instruction" },
+    { header: "상태", accessor: "currentStatus" },
+    { header: "작업장", accessor: "workCenterId" },
+  ];
+
   // --- 6. 렌더링 ---
   // 계산된 상태값들을 바탕으로 실제 화면(UI)을 그립니다.
 
@@ -166,28 +176,18 @@ export default function WorkInProgress() {
               <div style={{ flex: 2, border: '1px solid #ccc', display: 'flex', flexDirection: 'column' }}>
                 <h3 style={{ margin: 0, padding: '10px', backgroundColor: '#f2f2f2' }}>작업 리스트</h3>
                 <div style={{ overflow: 'auto', flex: 1 }}>
-                  <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead style={{ backgroundColor: '#f2f2f2' }}>
-                      <tr>
-                        <th>No.</th>
-                        <th>지시 ID</th>
-                        <th>지시 내용</th>
-                        <th>상태</th>
-                        <th>작업장</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {workOrders.map((order,idx) => (
-                        <tr key={order.workOrderId} onClick={() => handleSelectOrder(order)} style={{ cursor: 'pointer', backgroundColor: selectedOrder?.workOrderId === order.workOrderId ? '#e3f2fd' : 'transparent' }}>
-                          <td>{idx+1}</td>
-                          <td>{order.workOrderId}</td>
-                          <td>{order.instruction}</td>
-                          <td>{order.currentStatus}</td>
-                          <td>{order.workCenterId}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  {/* TableGrid */}
+                  <TableGrid
+                    columns={columns}
+                    data={workOrders}
+                    rowKey="workOrderId"
+                    selectedRow={selectedOrder}
+                    onRowSelect={handleSelectOrder}
+                    readOnly={true} // 편집 불필요
+                    getRowClassName={(row) =>
+                      selectedOrder?.workOrderId === row.workOrderId ? "bg-blue-100" : ""
+                    }
+                  />
                 </div>
               </div>
               <div style={{ flex: 1, border: '1px solid #ccc', padding: '20px' }}>

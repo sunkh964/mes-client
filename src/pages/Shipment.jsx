@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
+import TableGrid from "../layouts/TableGrid";
 
 const API_URL = "http://localhost:8082/api/shipments";
 
@@ -53,58 +54,163 @@ export default function Shipment() {
   const formatDateTime = (dateStr, withTime = false) => {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
+
+    const pad = (n) => (n < 10 ? "0" + n : n);
+
+    const yyyy = date.getFullYear();
+    const MM = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+
     if (withTime) {
-        // 상세 화면 → YYYY-MM-DD HH:mm:ss
-        return date.toLocaleString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        });
+      const hh = pad(date.getHours());
+      const mm = pad(date.getMinutes());
+      return `${yyyy}-${MM}-${dd} ${hh}:${mm}`; // YYYY-MM-DD HH:mm
     } else {
-        // 목록 화면 → YYYY-MM-DD
-        return date.toISOString().slice(0, 10);
-    }};
-
-
-  // 검색 아이콘 핸들러 연결
-  useEffect(() => {
-    setIconHandlers({ onSearch: handleSearch });
-    return () => {
-      setIconHandlers({ onSearch: null });
-    };
-  }, [searchParams]);
-
-  // 검색조건 변경
-  const handleSearchChange = (e) => {
-    const { name, value } = e.target;
-    setSearchParams((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // 초기화
-  const handleReset = () => {
-    setSearchParams(initialSearchParams);
-    fetchShipments();
-  };
-
-  // 상태 변환 (상세에서 텍스트로 보여줄 때 사용)
-  const renderStatus = (status) => {
-    switch (status) {
-      case 0:
-        return "계획";
-      case 1:
-        return "출하";
-      case 2:
-        return "인도완료";
-      case 3:
-        return "취소";
-      default:
-        return "-";
+      return `${yyyy}-${MM}-${dd}`; // YYYY-MM-DD
     }
   };
 
+    // 행 추가
+    const handleAddRow = () => {
+      const today = new Date().toISOString().slice(0, 10); // yyyy-MM-dd
+      const newRow = {
+        shipmentId: null, // PK 없음 → 신규
+        salesOrderId: "",
+        customerId: "",
+        vesselId: "",
+        plannedShipDate: today + "T00:00:00",
+        actualShipDate: null,
+        status: 0,
+        createdBy: "",
+        approvedDate: null,
+        approvedBy: "",
+        remark: "",
+        _isNew: true, 
+      };
+      setShipments((prev) => [...prev, newRow]);
+      setSelectedShipment(newRow);
+    };
+
+
+    // 저장
+    const handleSave = async () => {
+      if (!selectedShipment) {
+        alert("저장할 출하를 선택하세요.");
+        return;
+      }
+      if (!selectedShipment.customerId) {
+        alert("고객번호는 반드시 입력해야 합니다.");
+        return;
+      }
+
+      try {
+        console.log("데이터:", selectedShipment);
+        if (selectedShipment._isNew || !selectedShipment.shipmentId) {
+          // 신규 등록
+          await axios.post(API_URL, selectedShipment);
+          alert("등록 완료");
+        } else {
+          // 수정
+          await axios.put(`${API_URL}/${selectedShipment.shipmentId}`, selectedShipment);
+          alert("수정 완료");
+        }
+        await fetchShipments();
+      } catch (err) {
+        console.error("저장 실패:", err);
+        alert("저장 실패: " + (err.response?.data?.message || err.message));
+      }
+    };
+
+    // 삭제
+    const handleDelete = async () => {
+      if (!selectedShipment?.shipmentId) {
+        alert("삭제할 출하를 선택하세요.");
+        return;
+      }
+      if (!window.confirm(`정말 삭제하시겠습니까? (${selectedShipment.shipmentId})`)) return;
+
+      try {
+        await axios.delete(`${API_URL}/${selectedShipment.shipmentId}`);
+        alert("삭제 완료!");
+        await fetchShipments();
+      } catch (err) {
+        console.error("삭제 실패:", err);
+        alert("삭제 실패: " + (err.response?.data?.message || err.message));
+      }
+    };
+
+     // 상세에서 수정
+    const updateShipmentField = (field, value) => {
+      setSelectedShipment((prev) => {
+        if (!prev) return prev;
+        const cleanValue =
+          value === "-" || value === "" ? null : value;
+        const updated = { ...prev, [field]: cleanValue };
+        setShipments((prevList) =>
+          prevList.map((s) => (s.shipmentId === prev.shipmentId ? updated : s))
+        );
+        return updated;
+      });
+    };
+
+    const renderStatus = (status) => {
+      switch (status) {
+        case 0: return "계획";
+        case 1: return "출하";
+        case 2: return "인도완료";
+        case 3: return "취소";
+        default: return "-";
+      }
+    };
+    
+    // ================= 아이콘 핸들러 등록 =================
+    useEffect(() => {
+      setIconHandlers({
+        onSearch: handleSearch,
+        onNew: handleAddRow,
+        onSave: handleSave,
+        onDelete: handleDelete,
+      });
+      return () =>
+        setIconHandlers({
+          onSearch: null,
+          onNew: null,
+          onSave: null,
+          onDelete: null,
+        });
+    }, [searchParams, shipments, selectedShipment]);
+
+    // 검색조건 변경
+    const handleSearchChange = (e) => {
+      const { name, value } = e.target;
+      setSearchParams((prev) => ({ ...prev, [name]: value }));
+    };
+
+    // 초기화
+    const handleReset = () => {
+      setSearchParams(initialSearchParams);
+      fetchShipments();
+    };
+
+    // ================= TableGrid 컬럼 =================
+    const shipmentColumns = [
+      { header: "출하번호", accessor: "shipmentId" },
+      { header: "수주번호", accessor: "salesOrderId" },
+      { header: "고객번호", accessor: "customerId" },
+      { header: "선박코드", accessor: "vesselId" },
+      {
+        header: "출하예정일",
+        accessor: "plannedShipDate",
+        cell: (row) => row.plannedShipDate ? formatDateTime(row.plannedShipDate, true) : "-"
+      },
+      { header: "상태", accessor: "status", cell: (row) => renderStatus(row.status) },
+      {
+        header: "승인여부",
+        accessor: "approvedDate",
+        cell: (row) => row.approvedDate ? formatDateTime(row.approvedDate, true) : "-"
+      },
+    ];
+  
   return (
     <div className="mb-2.5 p-5">
       {/* ==================== 상단 검색 ==================== */}
@@ -189,88 +295,115 @@ export default function Shipment() {
       {/* ==================== 출하 목록 ==================== */}
       <h2 className="mb-2 text-lg font-semibold">출하 목록</h2>
       <div className="max-h-[300px] overflow-y-auto border border-gray-300 mb-5">
-        <table className="w-full border-collapse text-sm">
-          <thead style={{ backgroundColor: "#f2f2f2" }}>
-            <tr>
-              <th className="p-2">No.</th>
-              <th className="p-2">출하번호</th>
-              <th className="p-2">수주번호</th>
-              <th className="p-2">고객번호</th>
-              <th className="p-2">선박코드</th>
-              <th className="p-2">출하예정일</th>
-              <th className="p-2">상태</th>
-              <th className="p-2">승인여부</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shipments.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="text-center p-4">
-                  조회된 출하목록이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              shipments.map((ship, idx) => (
-                <tr
-                  key={ship.shipmentId}
-                  onClick={() => setSelectedShipment(ship)}
-                  className={`cursor-pointer hover:bg-gray-100 ${
-                    selectedShipment?.shipmentId === ship.shipmentId ? "bg-blue-100" : ""
-                  }`}
-                >
-                  <td className="p-2">{idx+1}</td>
-                  <td className="p-2">{ship.shipmentId}</td>
-                  <td className="p-2">{ship.salesOrderId}</td>
-                  <td className="p-2">{ship.customerId}</td>
-                  <td className="p-2">{ship.vesselId}</td>
-                  <td className="p-2">{formatDateTime(ship.plannedShipDate, false)}</td>
-                  <td className="p-2">{renderStatus(ship.status)}</td>
-                  <td className="p-2">{ship.approvedDate ? "승인" : "-"}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <TableGrid
+          columns={shipmentColumns}
+          data={shipments}
+          rowKey="shipmentId"
+          selectedRow={selectedShipment}
+          onRowSelect={setSelectedShipment}
+        />
       </div>
 
       {/* ==================== 출하 상세 ==================== */}
       <h3 className="text-lg font-semibold mb-2">출하 상세</h3>
-      <div className="border border-gray-300 rounded overflow-hidden">
-        <table className="w-full border-collapse text-sm text-center">
-          <tbody>
-            <tr className="">
-              <td className="border p-2 py-3 w-1/4 font-semibold">출하번호</td>
-              <td className="border p-2 w-1/4 ">{selectedShipment?.shipmentId || "-"}</td>
-              <td className="border p-2 py-3 w-1/4 font-semibold">상태</td>
-              <td className="border p-2 w-1/4">{selectedShipment ? renderStatus(selectedShipment.status) : "-"}</td>
-            </tr>
-            <tr>
-              <td className="border p-2 py-3 font-semibold">선박코드</td>
-              <td className="border p-2">{selectedShipment?.vesselId || "-"}</td>
-              <td className="border p-2 py-3 font-semibold">수주번호</td>
-              <td className="border p-2">{selectedShipment?.salesOrderId || "-"}</td>
-            </tr>
-            <tr>
-              <td className="border p-2 py-3 font-semibold">고객번호</td>
-              <td className="border p-2">{selectedShipment?.customerId || "-"}</td>
-              <td className="border p-2 py-3 font-semibold">승인자</td>
-              <td className="border p-2">{selectedShipment?.approvedBy || "-"}</td>
-            </tr>
-            <tr>
-              <td className="border p-2 py-3 font-semibold">승인일시</td>
-              <td className="border p-2">{formatDateTime(selectedShipment?.approvedDate, true)}</td>
-              <td className="border p-2 py-3 font-semibold">출하 예정일</td>
-              <td className="border p-2">{formatDateTime(selectedShipment?.plannedShipDate, true)}</td>
-            </tr>
-            <tr>
-              <td className="border p-2 py-3 font-semibold">출하일</td>
-              <td className="border p-2">{formatDateTime(selectedShipment?.actualShipDate, true)}</td>
-              <td className="border p-2 py-3 font-semibold">비고</td>
-              <td className="border p-2">{selectedShipment?.remark || "-"}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {selectedShipment ? (
+        <div className="border border-gray-300 rounded overflow-hidden p-4">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <label className="font-semibold block mb-1">출하번호</label>
+              <input
+                type="text"
+                value={selectedShipment.shipmentId || ""}
+                readOnly={!selectedShipment._isNew}  // 신규일 때만 수정 가능
+                onChange={(e) => updateShipmentField("shipmentId", e.target.value)}
+                className={`border px-2 py-1 w-full ${selectedShipment._isNew ? "" : "bg-gray-200"}`}
+              />
+            </div>
+            <div>
+              <label className="font-semibold block mb-1">상태</label>
+              <select
+                value={selectedShipment.status ?? 0}
+                onChange={(e) => updateShipmentField("status", Number(e.target.value))}
+                className="border px-2 py-1 w-full"
+              >
+                <option value={0}>계획</option>
+                <option value={1}>출하</option>
+                <option value={2}>인도완료</option>
+                <option value={3}>취소</option>
+              </select>
+            </div>
+            <div>
+              <label className="font-semibold block mb-1">수주번호</label>
+              <input
+                type="text"
+                value={selectedShipment.salesOrderId || ""}
+                onChange={(e) => updateShipmentField("salesOrderId", e.target.value)}
+                className="border px-2 py-1 w-full"
+              />
+            </div>
+            <div>
+              <label className="font-semibold block mb-1">고객번호</label>
+              <input
+                type="text"
+                value={selectedShipment.customerId || ""}
+                onChange={(e) => updateShipmentField("customerId", e.target.value)}
+                className="border px-2 py-1 w-full"
+              />
+            </div>
+            <div>
+              <label className="font-semibold block mb-1">선박코드</label>
+              <input
+                type="text"
+                value={selectedShipment.vesselId || ""}
+                onChange={(e) => updateShipmentField("vesselId", e.target.value)}
+                className="border px-2 py-1 w-full"
+              />
+            </div>
+            <div>
+              <label className="font-semibold block mb-1">출하예정일</label>
+              <div className="flex gap-2">
+              {/* 날짜 */}
+              <input
+                type="date"
+                value={selectedShipment.plannedShipDate ? selectedShipment.plannedShipDate.slice(0, 10) : ""}
+                onChange={(e) => {
+                  const datePart = e.target.value;
+                  const timePart = selectedShipment.plannedShipDate
+                    ? selectedShipment.plannedShipDate.slice(11, 19) // "HH:mm:ss"
+                    : "00:00:00";
+                  updateShipmentField("plannedShipDate", `${datePart}T${timePart}`);
+                }}
+                className="border px-2 py-1 w-1/2"
+              />
+
+              {/* 시간 */}
+              <input
+                type="time"
+                value={selectedShipment.plannedShipDate ? selectedShipment.plannedShipDate.slice(11, 16) : ""}
+                onChange={(e) => {
+                  const timePart = e.target.value + ":00"; // HH:mm → HH:mm:ss
+                  const datePart = selectedShipment.plannedShipDate
+                    ? selectedShipment.plannedShipDate.slice(0, 10)
+                    : new Date().toISOString().slice(0, 10);
+                  updateShipmentField("plannedShipDate", `${datePart}T${timePart}`);
+                }}
+                className="border px-2 py-1 w-1/2"
+              />
+            </div>
+            </div>
+            <div className="col-span-2">
+              <label className="font-semibold block mb-1">비고</label>
+              <textarea
+                value={selectedShipment.remark || ""}
+                onChange={(e) => updateShipmentField("remark", e.target.value)}
+                className="border px-2 py-1 w-full"
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm">출하를 선택하세요.</p>
+      )}
 
     </div>
   );

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useIconContext } from '../utils/IconContext';
 import axios from 'axios';
+import TableGrid from '../layouts/TableGrid';
 
 const WORK_RESULT_API_URL = "http://localhost:8082/api/work-results";
 
@@ -76,6 +77,20 @@ export default function WorkResults() {
     };
   }, [handleSearch, setIconHandlers]);
 
+  
+  // ================= 컬럼 정의 =================
+  const columns = [
+    { header: "실적ID", accessor: "resultId" },
+    { header: "작업지시ID", accessor: "workOrderId" },
+    { header: "작업자", accessor: "employeeId" },
+    { header: "합격품", accessor: "completedQuantity" },
+    { header: "불량품", accessor: "defectiveQuantity" },
+    { header: "시작시간", accessor: "startTime", render: (val) => formatDateTime(val) },
+    { header: "종료시간", accessor: "endTime", render: (val) => formatDateTime(val) },
+    { header: "상태", accessor: "status" },
+    { header: "비고", accessor: "remark" },
+  ];
+
   // --- 5. 렌더링 ---
   // 계산된 상태값들을 바탕으로 실제 화면(UI)을 그립니다.
 
@@ -106,22 +121,12 @@ export default function WorkResults() {
       </div>
 
       {/* 결과 테이블 UI */}
-      <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f2f2f2' }}>
-            <th>실적ID</th><th>작업지시ID</th><th>작업자</th><th>합격품</th><th>불량품</th><th>시작시간</th><th>종료시간</th><th>상태</th><th>비고</th>
-          </tr>
-        </thead>
-        <tbody>
-          {results.map(r => (
-            <tr key={r.resultId}>
-              <td>{r.resultId}</td><td>{r.workOrderId}</td><td>{r.employeeId}</td>
-              <td>{r.completedQuantity}</td><td>{r.defectiveQuantity}</td>
-              <td>{formatDateTime(r.startTime)}</td><td>{formatDateTime(r.endTime)}</td><td>{r.status}</td><td>{r.remark}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TableGrid
+        columns={columns}
+        data={results}
+        rowKey="resultId"
+        readOnly={true} // 조회 전용
+      />
     </div>
   );
 }

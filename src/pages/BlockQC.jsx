@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
+import TableGrid from "../layouts/TableGrid";
 
 const API_URL = "http://localhost:8082/api/blockQC";
 
@@ -67,6 +68,20 @@ export default function BlockQC() {
 
   // 행 선택
   const handleSelectBlock = (row) => setSelectedBlockQC(row);
+
+    // ================= 컬럼 정의 =================
+  const columns = [
+    { header: "블록품질 ID", accessor: "blockQCId" },
+    { header: "작업지시 ID", accessor: "workOrderId" },
+    { header: "블록 ID", accessor: "blockId" },
+    { header: "작업자 ID", accessor: "employeeId" },
+    { header: "검사 일시", accessor: "inspectionDate" },
+    { header: "검사 결과", accessor: "result" },
+    { header: "합격 수량", accessor: "passQuantity" },
+    { header: "불합격 수량", accessor: "failQuantity" },
+    { header: "불량 유형", accessor: "defectType" },
+    { header: "비고", accessor: "remark" },
+  ];
 
   return (
     <div className="mb-2.5 p-5">
@@ -135,59 +150,14 @@ export default function BlockQC() {
 
       {/* ================= 테이블 ================= */}
       <div className="max-h-[600px] overflow-y-auto border border-gray-300 mb-2.5">
-        <table
-          border="1"
-          style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}
-        >
-          <thead style={{ backgroundColor: "#f2f2f2" }}>
-            <tr>
-              <th className="p-3">No.</th>
-              <th className="p-3">블록품질 ID</th>
-              <th className="p-3">작업지시 ID</th>
-              <th className="p-3">블록 ID</th>
-              <th className="p-3">작업자 ID</th>
-              <th className="p-3">검사 일시</th>
-              <th className="p-3">검사 결과</th>
-              <th className="p-3">합격 수량</th>
-              <th className="p-3">불합격 수량</th>
-              <th className="p-3">불량 유형</th>
-              <th className="p-3">비고</th>
-            </tr>
-          </thead>
-          <tbody>
-            {blockQC.length === 0 ? (
-              <tr>
-                <td colSpan={10} style={{ textAlign: "center", padding: 16 }}>
-                  조회된 품질검사 목록이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              blockQC.map((block, idx) => (
-                <tr
-                  key={block.blockQCId}
-                  onClick={() => handleSelectBlock(block)}
-                  style={{
-                    cursor: "pointer",
-                    backgroundColor:
-                      selectedBlockQC?.blockQCId === block.blockQCId ? "#cce5ff" : "white",
-                  }}
-                >
-                  <td className="p-3">{idx+1}</td>
-                  <td className="p-3">{block.blockQCId}</td>
-                  <td className="p-3">{block.workOrderId}</td>
-                  <td className="p-3">{block.blockId}</td>
-                  <td className="p-3">{block.employeeId}</td>
-                  <td className="p-3">{block.inspectionDate}</td>
-                  <td className="p-3">{block.result}</td>
-                  <td className="p-3">{block.passQuantity}</td>
-                  <td className="p-3">{block.failQuantity}</td>
-                  <td className="p-3">{block.defectType}</td>
-                  <td className="p-3">{block.remark}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <TableGrid
+          columns={columns}
+          data={blockQC}
+          rowKey="blockQCId"
+          readOnly={true}
+          selectedRow={selectedBlockQC}
+          onRowSelect={handleSelectBlock}
+        />
       </div>
     </div>
   );

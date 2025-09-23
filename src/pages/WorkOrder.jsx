@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
+import TableGrid from "../layouts/TableGrid";
 
 const API_URL = "http://localhost:8082/api/workOrders";
 
 export default function WorkOrder() {
   const [workOrders, setWorkOrders] = useState([]);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
+  const [editingRowId, setEditingRowId] = useState(null);
 
   // 검색 조건
   const initialSearchParams = {
@@ -27,7 +29,9 @@ export default function WorkOrder() {
     try {
       const response = await axios.get(API_URL);
       setWorkOrders(response.data);
-      setSelectedWorkOrder(response.data.length > 0 ? response.data[0] : null);
+      if (response.data.length > 0) {
+        setSelectedWorkOrder(response.data[0]); // ✅ 첫 번째 행 자동 선택
+      }
     } catch (error) {
       console.error("작업지시 데이터 조회 실패:", error);
       setWorkOrders([]);
@@ -66,13 +70,15 @@ export default function WorkOrder() {
       actualStartTime: "",
       actualEndTime: "",
       currentStatus: "waiting",
-      priority: "",
+      priority: "우선순위",
       remark: "",
       _isNew: true,
+
     };
 
     setWorkOrders((prev) => [...prev, newRow]);
     setSelectedWorkOrder(newRow);
+    setEditingRowId(newRow.workOrderId);
   };
 
   // ================= 신규행 값 변경 =================
@@ -87,38 +93,47 @@ export default function WorkOrder() {
 
   // ================= 저장 =================
   const handleSave = async () => {
-    const newRow = workOrders.find((wo) => wo._isNew);
-    if (!newRow) {
-      alert("신규 행이 없습니다.");
+    if (!selectedWorkOrder) {
+      alert("저장할 작업지시를 선택하세요.");
       return;
     }
 
     try {
-      await axios.post(API_URL, {
-        processId: newRow.processId,
-        blockPlanId: newRow.blockPlanId,
-        blockId: newRow.blockId,
-        workCenterId: newRow.workCenterId,
-        equipmentId: newRow.equipmentId,
-        employeeId: newRow.employeeId,
-        instruction: newRow.instruction,
-        quantityToProduce: newRow.quantityToProduce,
-        quantityProduced: newRow.quantityProduced,
-        plannedStartTime: newRow.plannedStartTime || null,
-        plannedEndTime: newRow.plannedEndTime || null,
-        actualStartTime: newRow.actualStartTime || null,
-        actualEndTime: newRow.actualEndTime || null,
-        currentStatus: newRow.currentStatus,
-        priority: newRow.priority,
-        remark: newRow.remark,
-      });
-      await fetchWorkOrders();
-      alert("저장 완료!");
+      if (selectedWorkOrder._isNew || !selectedWorkOrder.workOrderId) {
+        // 신규 → POST
+        await axios.post(API_URL, {
+          processId: selectedWorkOrder.processId,
+          blockPlanId: selectedWorkOrder.blockPlanId,
+          blockId: selectedWorkOrder.blockId,
+          workCenterId: selectedWorkOrder.workCenterId,
+          equipmentId: selectedWorkOrder.equipmentId,
+          employeeId: selectedWorkOrder.employeeId,
+          instruction: selectedWorkOrder.instruction,
+          quantityToProduce: selectedWorkOrder.quantityToProduce,
+          quantityProduced: selectedWorkOrder.quantityProduced,
+          plannedStartTime: selectedWorkOrder.plannedStartTime || null,
+          plannedEndTime: selectedWorkOrder.plannedEndTime || null,
+          actualStartTime: selectedWorkOrder.actualStartTime || null,
+          actualEndTime: selectedWorkOrder.actualEndTime || null,
+          currentStatus: selectedWorkOrder.currentStatus,
+          priority: selectedWorkOrder.priority,
+          remark: selectedWorkOrder.remark,
+        });
+        alert("신규 작업지시 등록 완료!");
+      } else {
+        // 기존 → PUT
+        await axios.put(`${API_URL}/${selectedWorkOrder.workOrderId}`, selectedWorkOrder);
+        alert("작업지시 수정 완료!");
+      }
+
+      await fetchWorkOrders(); // 목록 새로고침
+      setEditingRowId(null); // 저장 후 수정모드 해제
     } catch (err) {
       console.error("저장 실패:", err);
       alert("저장 실패: " + (err.response?.data?.message || err.message));
     }
   };
+
 
   // ================= 삭제 =================
   const handleDelete = async () => {
@@ -174,9 +189,37 @@ export default function WorkOrder() {
     fetchWorkOrders();
   }, []);
 
-  // ================= 행 선택 =================
-  const handleSelectWorkOrder = (wo) => {
-    setSelectedWorkOrder(wo);
+  // ================= 컬럼 정의 =================
+  const columns = [
+    { header: "공정 ID", accessor: "processId", editable: true },
+    { header: "블록계획 ID", accessor: "blockPlanId", editable: true },
+    { header: "블록 ID", accessor: "blockId", editable: true },
+    { header: "작업장", accessor: "workCenterId", editable: true },
+    { header: "설비", accessor: "equipmentId", editable: true },
+    { header: "담당자", accessor: "employeeId", editable: true },
+    {
+      header: "우선순위",
+      accessor: "priority",
+      editable: true,
+      editor: "select",
+      options: [1, 2, 3, 4, 5],
+    },
+    {
+      header: "상태",
+      accessor: "currentStatus",
+      editable: true,
+      editor: "select",
+      options: ["waiting", "in-progress", "completed"],
+    },
+    { header: "비고", accessor: "remark", editable: true },
+  ];
+
+  // ================= 더블클릭 수정 =================
+  const handleRowDoubleClick = (row) => {
+    if (!row._isNew) {
+      setEditingRowId(row.workOrderId); // 기존행 수정
+      setSelectedWorkOrder(row);
+    }
   };
 
   return (
@@ -184,7 +227,7 @@ export default function WorkOrder() {
       {/* ================= 검색 영역 ================= */}
       <div className="border border-gray-300 p-3 mb-5">
         <div className="flex flex-wrap gap-6">
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <label className="text-sm font-medium">공정 ID:</label>
             <input
               type="text"
@@ -193,7 +236,7 @@ export default function WorkOrder() {
               onChange={handleSearchChange}
               className="border px-2 py-1 text-sm w-32"
             />
-          </div>
+          </div> */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">블록 ID:</label>
             <input
@@ -270,117 +313,41 @@ export default function WorkOrder() {
 
       {/* ================= 목록 ================= */}
       <h2 className="mb-2 text-lg font-semibold">작업지시 목록</h2>
-      <div style={{ maxHeight: 300, overflowY: "auto", border: "1px solid #ccc", marginBottom: 20 }}>
-        <table border="1" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-          <thead style={{ backgroundColor: "#f2f2f2" }}>
-            <tr>
-              <th style={{ padding: 8 }}>No.</th>
-              <th style={{ padding: 8 }}>작업지시 ID</th>
-              <th style={{ padding: 8 }}>공정 ID</th>
-              <th style={{ padding: 8 }}>블록 계획 ID</th>
-              <th style={{ padding: 8 }}>블록 ID</th>
-              <th style={{ padding: 8 }}>작업장 ID</th>
-              <th style={{ padding: 8 }}>우선순위</th>
-              <th style={{ padding: 8 }}>상태</th>
-              <th style={{ padding: 8 }}>작업자</th>
-            </tr>
-          </thead>
-          <tbody>
-            {workOrders.length === 0 ? (
-              <tr>
-                <td colSpan={10} style={{ textAlign: "center", padding: 16 }}>
-                  조회된 작업지시가 없습니다.
-                </td>
-              </tr>
-            ) : (
-              workOrders.map((wo, idx) =>
-                wo._isNew ? (
-                  <tr key={`new-${idx}`} style={{ backgroundColor: "#fffbe6" }}>
-                    <td style={{ padding: 8 }}>신규</td>
-                    <td style={{ padding: 8 }}>
-                      <input
-                        value={wo.processId}
-                        onChange={(e) => handleNewRowChange("processId", e.target.value)}
-                        className="border px-1 text-sm w-24"
-                      />
-                    </td>
-                    <td style={{ padding: 8 }}>
-                      <input
-                        value={wo.blockPlanId}
-                        onChange={(e) => handleNewRowChange("blockPlanId", e.target.value)}
-                        className="border px-1 text-sm w-24"
-                      />
-                    </td>
-                    <td style={{ padding: 8 }}>
-                      <input
-                        value={wo.blockId}
-                        onChange={(e) => handleNewRowChange("blockId", e.target.value)}
-                        className="border px-1 text-sm w-24"
-                      />
-                    </td>
-                    <td style={{ padding: 8 }}>
-                      <input
-                        value={wo.workCenterId}
-                        onChange={(e) => handleNewRowChange("workCenterId", e.target.value)}
-                        className="border px-1 text-sm w-24"
-                      />
-                    </td>
-                    <td style={{ padding: 8 }}>
-                      <input
-                        type="number"
-                        value={wo.priority}
-                        onChange={(e) => handleNewRowChange("priority", e.target.value)}
-                        className="border px-1 text-sm w-16"
-                      />
-                    </td>
-                    <td style={{ padding: 8 }}>
-                      <select
-                        value={wo.currentStatus}
-                        onChange={(e) => handleNewRowChange("currentStatus", e.target.value)}
-                        className="border px-1 text-sm"
-                      >
-                        <option value="waiting">대기</option>
-                        <option value="in-progress">진행중</option>
-                        <option value="completed">완료</option>
-                      </select>
-                    </td>
-                    <td style={{ padding: 8 }}>
-                      <input
-                        value={wo.employeeId}
-                        onChange={(e) => handleNewRowChange("employeeId", e.target.value)}
-                        className="border px-1 text-sm w-24"
-                      />
-                    </td>
-                  </tr>
-                ) : (
-                  <tr
-                    key={wo.workOrderId}
-                    onClick={() => handleSelectWorkOrder(wo)}
-                    style={{
-                      cursor: "pointer",
-                      backgroundColor:
-                        selectedWorkOrder?.workOrderId === wo.workOrderId ? "#cce5ff" : "white",
-                    }}
-                  >
-                    <td style={{ padding: 8 }}>{idx+1}</td>
-                    <td style={{ padding: 8 }}>{wo.workOrderId}</td>
-                    <td style={{ padding: 8 }}>{wo.processId}</td>
-                    <td style={{ padding: 8 }}>{wo.blockPlanId}</td>
-                    <td style={{ padding: 8 }}>{wo.blockId}</td>
-                    <td style={{ padding: 8 }}>{wo.workCenterId}</td>
-                    <td style={{ padding: 8 }}>{wo.priority}</td>
-                    <td style={{ padding: 8 }}>{wo.currentStatus}</td>
-                    <td style={{ padding: 8 }}>{wo.employeeId}</td>
-                  </tr>
-                )
+      <div className="overflow-y-auto h-[500px] border border-gray-300">
+        <TableGrid
+          columns={columns}
+          data={workOrders}
+          rowKey="workOrderId"
+          selectedRow={selectedWorkOrder}
+          onRowSelect={setSelectedWorkOrder}
+          onCellUpdate={(rowIndex, field, value) => {
+            setWorkOrders((prev) =>
+              prev.map((wo, i) =>
+                i === rowIndex ? { ...wo, [field]: value } : wo
               )
-            )}
-          </tbody>
-        </table>
+            );
+          }}
+          readOnly={false}
+          editingRowId={editingRowId} // 현재 수정중인 행 ID 전달
+          onRowDoubleClick={handleRowDoubleClick} // 더블클릭 
+          getRowClassName={(row) => {
+            if (selectedWorkOrder?.workOrderId === row.workOrderId) {
+              return "bg-blue-100"; // 선택된 행
+            }
+            if (row.priority == 1) {
+              return "bg-rose-100"; // 우선순위 1
+            }
+            // 작업장/설비/담당자 누락 → 노란색
+            if (!row.workCenterId || !row.equipmentId || !row.employeeId) {
+              return "bg-yellow-50";
+            }
+            return "";
+          }}
+        />
       </div>
 
       {/* ================= 상세조회 ================= */}
-      <h3 className="mb-2 text-lg font-semibold">상세조회</h3>
+      {/* <h3 className="mb-2 text-lg font-semibold">상세조회</h3>
       <div style={{ border: "1px solid #ccc", maxHeight: 400, overflowX: "auto" }}>
         {selectedWorkOrder ? (
           <table border="1" style={{ width: "100%", borderCollapse: "collapse", tableLayout: "auto" }}>
@@ -414,7 +381,7 @@ export default function WorkOrder() {
         ) : (
           <div style={{ padding: 10 }}>조회된 작업지시가 없습니다.</div>
         )}
-      </div>
-    </div>
+      </div> */}
+    </div >
   );
 }

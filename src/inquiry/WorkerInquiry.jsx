@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getToken } from '../utils/api';
 import axios from 'axios';
+import TableGrid from '../layouts/TableGrid';
 
 // 요청 API 주소
 const Worker_Proxy_API_URL = 'http://localhost:8083/api/proxy/employees';
@@ -10,6 +11,22 @@ export default function WorkInquiry() {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // TableGrid 컬럼 정의
+  const columns = [
+    { header: "사원 ID", accessor: "employeeId" },
+    { header: "이름", accessor: "employeeNm" },
+    { header: "부서", accessor: "department.departmentNm" }, // 중첩 데이터
+    { header: "직위", accessor: "position.positionNm" },
+    { header: "연락처", accessor: "phone" },
+  ];
+
+  // 중첩 데이터 안전하게 접근 (department?.departmentNm)
+  const processedData = workers.map(w => ({
+    ...w,
+    "department.departmentNm": w.department?.departmentNm || "N/A",
+    "position.positionNm": w.position?.positionNm || "N/A",
+  }));
 
   // 데이터 불러오기 함수
   const fetchData = useCallback(async () => {
@@ -64,42 +81,13 @@ export default function WorkInquiry() {
         </div>
       </div>
 
-      <div className="overflow-x-auto shadow-md rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">사원 ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">부서</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">직위</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">연락처</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {workers.length > 0 ? (
-              workers.map((worker, idx) => (
-                <tr key={worker.employeeId}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{idx + 1}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{worker.employeeId}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{worker.employeeNm}</td>
-                  {/* API 응답에 부서/직위 객체가 포함되어 있다고 가정합니다. 실제 데이터 구조에 맞게 수정 필요 */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{worker.department?.departmentNm || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{worker.position?.positionNm || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{worker.phone || 'N/A'}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="px-6 py-8 text-center text-sm text-gray-500">
-                  등록된 작업자 정보가 없습니다.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* TableGrid */}
+      <TableGrid 
+        columns={columns} 
+        data={processedData} 
+        rowKey="employeeId"
+        readOnly={true} 
+      />
     </div>
   );
 }

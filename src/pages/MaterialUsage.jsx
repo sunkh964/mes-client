@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
 import MaterialSelectionModal from "./MaterialSelectionModal.jsx";
+import TableGrid from "../layouts/TableGrid";
 
 // API URL
 const MATERIALS_API_URL = "http://localhost:8082/api/materials";
@@ -102,16 +103,6 @@ export default function MaterialUsage() {
     setIsModalOpen(false);
   };
 
-  const handleQuantityChange = (materialId, value) => {
-    setSelectedRows((prevRows) =>
-      prevRows.map((row) =>
-        row.materialId === materialId
-          ? { ...row, usageQuantity: parseInt(value) || 0 }
-          : row
-      )
-    );
-  };
-
   // '신규' 아이콘 클릭 시 실행될 함수
   const handleNew = () => setIsModalOpen(true);
 
@@ -125,13 +116,35 @@ export default function MaterialUsage() {
     setIconHandlers({
       onNew: handleNew,
       onSave: handleSave,
-      onSearch: handleSearch, // ✅ 조회 버튼 대신 아이콘으로 검색 실행
+      onSearch: handleSearch, // 조회 버튼 대신 아이콘으로 검색 실행
       onDelete: null,
     });
     return () => {
       setIconHandlers({ onNew: null, onSave: null, onSearch: null, onDelete: null });
     };
   }, [setIconHandlers, searchParams]);
+
+  // ================= 컬럼 정의 =================
+  const registerColumns = [
+    { header: "자재 ID", accessor: "materialId" },
+    { header: "자재명", accessor: "materialNm" },
+    { header: "현재고", accessor: "currentStock" },
+    { header: "사용량", accessor: "usageQuantity", editable: true, editor: "number" }
+  ];
+
+  const historyColumns = [
+    { header: "작업내역 ID", accessor: "resultId" },
+    { header: "작업지시 ID", accessor: "workOrderId" },
+    { header: "자재 ID", accessor: "materialId" },
+    { header: "수량", accessor: "quantity" },
+    { header: "단위", accessor: "unit" },
+    { header: "사용 일시", accessor: "inputDate" },
+    { header: "창고", accessor: "warehouse" },
+    { header: "위치", accessor: "location" },
+    { header: "작업자", accessor: "employeeId" },
+    { header: "비고", accessor: "remark" },
+  ];
+
 
   // --- 렌더링 ---
   if (loading) return <p>전체 자재 목록을 불러오는 중입니다...</p>;
@@ -226,51 +239,23 @@ export default function MaterialUsage() {
         }}
       >
         <h2 className="mb-3 font-semibold">자재 사용 등록</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ backgroundColor: "#eef1f5" }}>
-              <th style={{ padding: "12px", border: "1px solid #ddd" }}>No.</th>
-              <th style={{ padding: "12px", border: "1px solid #ddd" }}>자재 ID</th>
-              <th style={{ padding: "12px", border: "1px solid #ddd" }}>자재명</th>
-              <th style={{ padding: "12px", border: "1px solid #ddd" }}>현재고</th>
-              <th style={{ padding: "12px", border: "1px solid #ddd" }}>사용량</th>
-            </tr>
-          </thead>
-          <tbody>
-            {selectedRows.map((row,index) => (
-              <tr key={row.materialId}>
-                <td style={{ padding: "12px", border: "1px solid #ddd" }}>
-                  {index+1}
-                </td>
-                <td style={{ padding: "12px", border: "1px solid #ddd" }}>
-                  {row.materialId}
-                </td>
-                <td style={{ padding: "12px", border: "1px solid #ddd" }}>
-                  {row.materialNm}
-                </td>
-                <td style={{ padding: "12px", border: "1px solid #ddd" }}>
-                  {row.currentStock}
-                </td>
-                <td style={{ padding: "12px", border: "1px solid #ddd" }}>
-                  <input
-                    type="number"
-                    value={row.usageQuantity}
-                    onChange={(e) =>
-                      handleQuantityChange(row.materialId, e.target.value)
-                    }
-                    placeholder="사용량 입력"
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      boxSizing: "border-box",
-                      textAlign: "right",
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <TableGrid
+          columns={registerColumns}
+          data={selectedRows.map((row, index) => ({
+            ...row,
+            no: index + 1, // No. 컬럼 표시
+          }))}
+          rowKey="materialId"
+          readOnly={false}
+          alwaysEditable={true}
+          onCellUpdate={(rowIndex, field, value) => {
+            setSelectedRows((prev) =>
+              prev.map((row, i) =>
+                i === rowIndex ? { ...row, [field]: value } : row
+              )
+            );
+          }}
+        />
       </div>
 
       {/* 모달 */}
@@ -292,49 +277,13 @@ export default function MaterialUsage() {
         }}
       >
         <h2 className="mb-3 font-semibold">자재 사용 내역</h2>
-        <div style={{ maxHeight: 250, overflowY: "auto" }}>
-          <table className="w-full border border-gray-200">
-            <thead>
-              <tr style={{ backgroundColor: "#eef1f5" }}>
-                <th className="p-2 px-4 border border-gray-200">No.</th>
-                <th className="p-2 px-4 border border-gray-200">작업내역 ID</th>
-                <th className="p-2 px-4 border border-gray-200">작업지시 ID</th>
-                <th className="p-2 px-4 border border-gray-200">자재 ID</th>
-                <th className="p-2 px-6 border border-gray-200">수량</th>
-                <th className="p-2 px-6 border border-gray-200">단위</th>
-                <th className="p-2 px-6 border border-gray-200">사용 일시</th>
-                <th className="p-2 px-6 border border-gray-200">창고</th>
-                <th className="p-2 px-6 border border-gray-200">위치</th>
-                <th className="p-2 px-6 border border-gray-200">작업자</th>
-                <th className="p-2 px-4 border border-gray-200">비고</th>
-              </tr>
-            </thead>
-            <tbody>
-              {materialInputs.length === 0 ? (
-                <tr>
-                  <td colSpan={10} style={{ textAlign: "center", padding: 12 }}>
-                    등록된 사용 내역이 없습니다.
-                  </td>
-                </tr>
-              ) : (
-                materialInputs.map((row, idx) => (
-                  <tr key={idx}>
-                    <td className="p-2 px-4 border border-gray-200">{idx+1}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.resultId}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.workOrderId}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.materialId}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.quantity}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.unit}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.inputDate}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.warehouse}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.location}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.employeeId}</td>
-                    <td className="p-2 px-4 border border-gray-200">{row.remark}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="flex-1 overflow-y-auto border border-gray-300 max-h-[300px]">
+          <TableGrid
+            columns={historyColumns}
+            data={materialInputs}
+            rowKey="resultId"
+            readOnly={true}
+          />
         </div>
       </div>
     </div>

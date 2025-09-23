@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
+import TableGrid from "../layouts/TableGrid";
 
 const API_URL = "http://localhost:8082/api/blockPlans";
 
@@ -29,6 +30,15 @@ export default function BlockPlan() {
 
     const { setIconHandlers } = useIconContext();
 
+    
+  // TableGrid 컬럼
+  const columns = [
+    { header: "블록 생산 ID", accessor: "blockPlanId" },
+    { header: "블록명", accessor: "blockId" },
+    { header: "공정명", accessor: "processId" },
+    { header: "선박명", accessor: "vesselId" },
+  ];
+
     // 페이지가 처음 로드될 때 전체 목록을 조회합니다.
     useEffect(() => {
         fetchBlockPlans();
@@ -50,14 +60,13 @@ export default function BlockPlan() {
                 onDelete: null 
             });
         };
-    }, [searchParams, blockPlans, selectedBlockPlan]); // 검색 조건 바뀔 때마다 최신 핸들러 등록 예림
-    //yelim
+    }, [searchParams, blockPlans, selectedBlockPlan]); // 검색 조건 바뀔 때마다 최신 핸들러 등록 
 
     const handleAddRow = () => {
         const today = new Date().toISOString().split("T")[0];
         const newRow = {
             blockPlanId: null,
-            blockId: "",
+            blockId: null,
             processId: "",
             vesselId: "",
             planQty: 0,
@@ -128,9 +137,7 @@ export default function BlockPlan() {
             alert("시작일과 종료일을 입력하세요.");
             return;
         }
-
         try {
-            console.log("보낼 데이터:", selectedBlockPlan);
             // if (!selectedBlockPlan.blockPlanId) {
             // // 신규 등록
             // await axios.post(API_URL, selectedBlockPlan, {
@@ -298,42 +305,22 @@ export default function BlockPlan() {
 
 
             {/* ==================== 하단 그리드 ==================== */}
-            <div className="flex gap-6">
+            <div className="flex gap-6 max-h-[550px">
 
                 {/* 하단-좌측 */}
-                <div className="flex-[6] overflow-auto border border-gray-300">
-
-                    <table border="1" style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-                        <thead>
-                            <tr style={{ backgroundColor: '#f2f2f2' }}>
-                                <th style={{ padding: '8px', width: '20%' }}>No.</th>
-                                <th style={{ padding: '8px', width: '20%' }}>블록 생산 ID</th>
-                                <th style={{ padding: '8px', width: '20%' }}>블록명</th>
-                                <th style={{ padding: '8px', width: '20%' }}>공정명</th>
-                                <th style={{ padding: '8px', width: '20%' }}>선박명</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {blockPlans.map((blockPlan, index) => (
-                                <tr
-                                    key={blockPlan.blockPlanId ?? `new-${index}`}
-                                    onClick={() => handleSelectBlockPlan(blockPlan)} // 선택 함수 호출
-                                    className={`cursor-pointer hover:bg-gray-100 ${selectedBlockPlan?.blockPlanId === blockPlan.blockPlanId ? 'bg-blue-100' : ''
-                                        }`}
-                                >
-                                    <td className="p-2 h-[40px]">{index + 1}</td>
-                                    <td className="p-2 h-[40px]">{blockPlan.blockPlanId}</td>
-                                    <td className="p-2 h-[40px]">{blockPlan.blockId}</td>
-                                    <td className="p-2 h-[40px]">{blockPlan.processId}</td>
-                                    <td className="p-2 h-[40px]">{blockPlan.vesselId}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="flex-[6] overflow-auto border border-gray-300 h-[575px]">
+                <TableGrid
+                    columns={columns}
+                    data={blockPlans}
+                    rowKey="blockPlanId"  
+                    selectedRow={selectedBlockPlan}
+                    onRowSelect={setSelectedBlockPlan}
+                    readOnly={true} 
+                />
                 </div>
 
                 {/* 우측: 블록 상세 정보 */}
-                <div className="flex-[4] border border-gray-300 rounded p-4 overflow-auto">
+                <div className="flex-[4] mb-5 border border-gray-300 rounded p-4 overflow-auto">
                     <h3 className="text-lg font-semibold mb-4">블록 계획 상세</h3>
 
                     <div className="grid grid-cols-3 gap-6">

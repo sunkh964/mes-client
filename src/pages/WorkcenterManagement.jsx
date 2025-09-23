@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
 import EquipmentManagement from "./EquipmentManagement";
+import TableGrid from "../layouts/TableGrid";
 
 const WORK_CENTER_API_URL = "http://localhost:8082/api/work-centers";
 
 export default function WorkCenterManagement() {
   const [workCenters, setWorkCenters] = useState([]);
+  const [selectedRow, setSelectedRow] = useState(null);
   const [selectedWorkCenterId, setSelectedWorkCenterId] = useState(null);
   const [searchParams, setSearchParams] = useState({
     workCenterId: "",
@@ -33,6 +35,7 @@ export default function WorkCenterManagement() {
       setWorkCenters(response.data);
       if (response.data.length > 0) {
         setSelectedWorkCenterId(response.data[0].workCenterId);
+        setSelectedRow(response.data[0]);
       }
     } catch (e) {
       setError(e);
@@ -72,7 +75,8 @@ export default function WorkCenterManagement() {
       _isNew: true,
     };
     setWorkCenters((prev) => [newRow, ...prev]);
-    setSelectedWorkCenterId(newRow.workCenterId);
+  setSelectedRow(newRow);          // selectedRow로 바로 연결
+  setSelectedWorkCenterId(null);   
   };
 
   // 신규 행 값 변경
@@ -144,6 +148,26 @@ export default function WorkCenterManagement() {
     };
   }, [handleSearch, searchParams, workCenters, selectedWorkCenterId]);
 
+   // 컬럼 정의 
+  const columns = [
+    { header: "ID", accessor: "workCenterId", editable: (row) => row._isNew },
+    { header: "작업장명", accessor: "workCenterNm", editable: true },
+    { header: "공정 ID", accessor: "processId", editable: true },
+    { 
+      header: "활성 여부", 
+      accessor: "isActive", 
+      editable: true,
+      editor: "select",               
+      options: ["활성", "비활성"], 
+    },
+  ];
+
+  // 데이터 전처리
+  const processedData = workCenters.map((wc) => ({
+    ...wc,
+    isActive: wc.isActive ? "활성" : "비활성",
+  }));
+
   return (
     <div style={{ padding: "20px", display: "flex", flexDirection: "column", height: "90vh" }}>
       {/* 검색영역 */}
@@ -174,61 +198,37 @@ export default function WorkCenterManagement() {
 
       {/* 하단 그리드 */}
       <div style={{ flex: 1, display: "flex", gap: "20px", overflow: "hidden" }}>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", border: "1px solid #ccc" }}>
-          <h3 style={{ margin: 0, padding: "10px", backgroundColor: "#f2f2f2" }}>작업장</h3>
-          <div style={{ flex: 1, overflowY: "auto" }}>
+        <div className="flex-1 flex flex-col border border-gray-300">
+          <h3 className="m-0 px-4 py-2 bg-gray-100 font-semibold text-sm">작업장</h3>
+          <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <p>로딩 중...</p>
+              <p className="p-4">로딩 중...</p>
+            ) : error ? (
+              <p className="p-4 text-red-500">에러: {error.message}</p>
             ) : (
-              <table border="1" style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ backgroundColor: "#eee" }}>
-                    <th>No.</th>
-                    <th>ID</th>
-                    <th>작업장명</th>
-                    <th>공정ID</th>
-                    <th>활성 여부</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {workCenters.map((wc, idx) =>
-                    wc._isNew ? (
-                      <tr key={`new-${idx}`} style={{ backgroundColor: "#fffbe6" }}>
-                        <td>
-                          <input value={wc.workCenterId} placeholder="작업장 ID" onChange={(e) => handleNewRowChange("workCenterId", e.target.value)} />
-                        </td>
-                        <td>
-                          <input value={wc.workCenterNm} placeholder="작업장명" onChange={(e) => handleNewRowChange("workCenterNm", e.target.value)} />
-                        </td>
-                        <td>
-                          <input value={wc.processId} placeholder="공정 ID" onChange={(e) => handleNewRowChange("processId", e.target.value)} />
-                        </td>
-                        <td>
-                          <select value={wc.isActive ? "true" : "false"} onChange={(e) => handleNewRowChange("isActive", e.target.value)}>
-                            <option value="true">활성</option>
-                            <option value="false">비활성</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ) : (
-                      <tr
-                        key={wc.workCenterId}
-                        onClick={() => handleWorkCenterSelect(wc.workCenterId)}
-                        style={{
-                          cursor: "pointer",
-                          backgroundColor: selectedWorkCenterId === wc.workCenterId ? "#e3f2fd" : "transparent",
-                        }}
-                      >
-                        <td>{idx + 1}</td>
-                        <td>{wc.workCenterId}</td>
-                        <td>{wc.workCenterNm}</td>
-                        <td>{wc.processId}</td>
-                        <td>{wc.isActive ? "활성" : "비활성"}</td>
-                      </tr>
+              <TableGrid
+                columns={columns}
+                data={processedData}
+                rowKey="workCenterId"
+                selectedRow={selectedRow}
+                onRowSelect={(row) => {
+                  setSelectedRow(row);
+                  setSelectedWorkCenterId(row.workCenterId);   // 동기화
+                }}
+                onCellUpdate={(rowIndex, field, value) => {
+                  setWorkCenters((prev) =>
+                    prev.map((wc, i) =>
+                      i === rowIndex
+                        ? {
+                            ...wc,
+                            [field]: field === "isActive" ? value === "활성" : value,
+                          }
+                        : wc
                     )
-                  )}
-                </tbody>
-              </table>
+                  );
+                }}
+                readOnly={false}
+              />
             )}
           </div>
         </div>

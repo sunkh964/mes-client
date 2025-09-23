@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
+import TableGrid from "../layouts/TableGrid";
 
 const API_URL = "http://localhost:8082/api/qualityControl";
 
@@ -78,6 +79,24 @@ export default function MaterialQC() {
     const { name, value } = e.target;
     setSearchParams((prev) => ({ ...prev, [name]: value }));
   };
+
+  // ================= 컬럼 정의 =================
+  const columns = [
+    { header: "검사 ID", accessor: "qcId" },
+    { header: "발주 ID", accessor: "purchaseOrderId" },
+    { header: "발주 상세 ID", accessor: "orderDetailId" },
+    { header: "작업지시 ID", accessor: "workOrderId" },
+    { header: "자재 ID", accessor: "materialId" },
+    { header: "검사자 ID", accessor: "inspectorId" },
+    { header: "검사일시", accessor: "inspectionDate" },
+    { header: "검사 결과", accessor: "result" },
+    { header: "합격 수량", accessor: "passQuantity" },
+    { header: "불합격 수량", accessor: "failQuantity" },
+    { header: "불량 유형", accessor: "defectType" },
+    { header: "비고", accessor: "remark" },
+    { header: "생성일", accessor: "createdAt" },
+    { header: "수정일", accessor: "updatedAt" },
+  ];
 
   return (
     <div className="mb-2.5 p-5">
@@ -157,59 +176,12 @@ export default function MaterialQC() {
 
       {/* ================= 테이블 ================= */}
       <div className="max-h-[600px] overflow-y-auto border border-gray-300 mb-2.5">
-        <table
-          border="1"
-          style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}
-        >
-          <thead style={{ backgroundColor: "#f2f2f2" }}>
-            <tr>
-              <th className="py-3 px-4">No.</th>
-              <th className="p-3">검사 ID</th>
-              <th className="p-3">발주 ID</th>
-              <th className="p-3">발주 상세 ID</th>
-              <th className="p-3">작업지시 ID</th>
-              <th className="p-3">자재 ID</th>
-              <th className="p-3">검사자 ID</th>
-              <th className="p-3">검사일시</th>
-              <th className="p-3">검사 결과</th>
-              <th className="p-3">합격 수량</th>
-              <th className="p-3">불합격 수량</th>
-              <th className="p-3">불량 유형</th>
-              <th className="p-3">비고</th>
-              <th className="p-3">생성일</th>
-              <th className="p-3">수정일</th>
-            </tr>
-          </thead>
-          <tbody>
-            {materialQC.length === 0 ? (
-              <tr>
-                <td colSpan={14} style={{ textAlign: "center", padding: 16 }}>
-                  조회된 품질검사 목록이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              materialQC.map((qc,idx) => (
-                <tr key={qc.qcId}>
-                  <td className="p-3">{idx+1}</td>
-                  <td className="p-3">{qc.qcId}</td>
-                  <td className="p-3">{qc.purchaseOrderId}</td>
-                  <td className="p-3">{qc.orderDetailId}</td>
-                  <td className="p-3">{qc.workOrderId}</td>
-                  <td className="p-3">{qc.materialId}</td>
-                  <td className="p-3">{qc.inspectorId}</td>
-                  <td className="p-3">{qc.inspectionDate}</td>
-                  <td className="p-3">{qc.result}</td>
-                  <td className="p-3">{qc.passQuantity}</td>
-                  <td className="p-3">{qc.failQuantity}</td>
-                  <td className="p-3">{qc.defectType}</td>
-                  <td className="p-3">{qc.remark}</td>
-                  <td className="p-3">{qc.createdAt}</td>
-                  <td className="p-3">{qc.updatedAt}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <TableGrid
+          columns={columns}
+          data={materialQC}
+          rowKey="qcId"
+          readOnly={true}
+        />
       </div>
     </div>
   );
