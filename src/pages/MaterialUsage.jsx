@@ -13,10 +13,13 @@ export default function MaterialUsage() {
   const [allMaterials, setAllMaterials] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [materialInputs, setMaterialInputs] = useState([]);
+  const [selectedHistoryRow, setSelectedHistoryRow] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const employeeId = localStorage.getItem("employeeId");
 
   // 검색 조건 초기값
   const initialSearchParams = {
@@ -104,11 +107,88 @@ export default function MaterialUsage() {
   };
 
   // '신규' 아이콘 클릭 시 실행될 함수
-  const handleNew = () => setIsModalOpen(true);
+  const handleNew = async () => {
+    await fetchAllMaterials();   // ✅ 모달 열기 전에 최신 재고 가져오기
+    setIsModalOpen(true);
+  };
 
-  // '저장' 아이콘 클릭 시 실행될 함수 (아직 구현 안 함)
-  const handleSave = () => {
-    alert("저장 기능은 구현되지 않았습니다.");
+  // '저장' 아이콘 클릭 시 실행될 함수
+  const handleSave = async () => {
+    try {
+      // 로그인 사용자 ID 가져오기
+      const loggedInEmployeeId = localStorage.getItem("employeeId");
+
+      if (!loggedInEmployeeId) {
+        alert("로그인 정보가 없습니다. 다시 로그인 해주세요.");
+        return;
+      }
+
+      // 선택된 자재 사용 등록
+      for (const row of selectedRows) {
+        const dto = {
+          materialId: row.materialId,
+          quantity: parseInt(row.usageQuantity, 10),
+          unit: row.unit || "EA",
+          warehouse: row.warehouse || "DEFAULT",
+          location: row.location || "DEFAULT",
+          employeeId: loggedInEmployeeId, // 세션에서 불러온 사용자 ID
+          inputDate: new Date().toISOString().slice(0, 19).replace("T", " "),
+          remark: row.remark || "",
+
+          workOrderId: row.workOrderId,  
+          resultId: row.resultId
+        };
+
+        await axios.post(MATERIAL_INPUTS_API_URL, dto);
+      }
+
+      alert("자재 사용 등록이 완료되었습니다.");
+      setSelectedRows([]); // 등록 후 입력창 비움
+      // 저장 후 재조회 (현재고 + 내역 둘 다 업데이트)
+      await Promise.all([fetchAllMaterials(), fetchMaterialInputs()]);
+    } catch (err) {
+      console.error("자재 사용 등록 실패:", err);
+      alert("저장 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 삭제 핸들러
+  const handleDelete = async () => {
+    if (!selectedHistoryRowId) {
+      alert("삭제할 행을 선택하세요.");
+      return;
+    }
+
+    if (!window.confirm("선택한 자재 사용 내역을 삭제하시겠습니까?")) return;
+
+    try {
+      await axios.delete(`${MATERIAL_INPUTS_API_URL}/${selectedHistoryRowId}`);
+      alert("삭제가 완료되었습니다.");
+      setSelectedHistoryRowId(null); // 선택 초기화
+      fetchMaterialInputs(); // 목록 새로고침
+    } catch (err) {
+      console.error("삭제 실패:", err);
+      alert("삭제 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 자재 사용 내역 수정(더블클릭 시 작동)
+  const handleRowDoubleClick = async (row) => {
+    const newQuantity = prompt("새로운 사용 수량을 입력하세요:", row.quantity);
+    if (!newQuantity) return;
+
+    try {
+      const dto = {
+        ...row,
+        quantity: parseInt(newQuantity, 10),
+      };
+      await axios.put(`${MATERIAL_INPUTS_API_URL}/${row.inputId}`, dto);
+      alert("수정이 완료되었습니다.");
+      fetchMaterialInputs();
+    } catch (err) {
+      console.error("수정 실패:", err);
+      alert("수정 중 오류가 발생했습니다.");
+    }
   };
 
   // --- IconContext 핸들러 등록 ---
@@ -116,16 +196,29 @@ export default function MaterialUsage() {
     setIconHandlers({
       onNew: handleNew,
       onSave: handleSave,
-      onSearch: handleSearch, // 조회 버튼 대신 아이콘으로 검색 실행
-      onDelete: null,
+      onSearch: handleSearch,
+      onDelete: handleDelete,
     });
     return () => {
-      setIconHandlers({ onNew: null, onSave: null, onSearch: null, onDelete: null });
+      setIconHandlers({
+        onNew: null,
+        onSave: null,
+        onSearch: null,
+        onDelete: null,
+      });
     };
-  }, [setIconHandlers, searchParams]);
+  }, [setIconHandlers, searchParams, selectedRows]);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      fetchAllMaterials();   // 모달 열릴 때마다 재조회
+    }
+  }, [isModalOpen, fetchAllMaterials]);
 
   // ================= 컬럼 정의 =================
   const registerColumns = [
+    { header: "작업내역 ID", accessor: "resultId", editable: true },
+    { header: "작업지시 ID", accessor: "workOrderId", editable: true },
     { header: "자재 ID", accessor: "materialId" },
     { header: "자재명", accessor: "materialNm" },
     { header: "현재고", accessor: "currentStock" },
@@ -281,8 +374,11 @@ export default function MaterialUsage() {
           <TableGrid
             columns={historyColumns}
             data={materialInputs}
-            rowKey="resultId"
+            rowKey="inputId"
             readOnly={true}
+            onRowDoubleClick={handleRowDoubleClick}
+            onRowSelect={(row) => setSelectedHistoryRow(row)}  //  클릭 시 선택 저장
+            selectedRow={selectedHistoryRow} 
           />
         </div>
       </div>

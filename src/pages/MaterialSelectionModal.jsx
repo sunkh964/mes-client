@@ -43,7 +43,7 @@ export default function MaterialSelectionModal({ materials, onClose, onConfirm }
         
         {/* 자재 목록 (스크롤 가능) */}
         <div style={{ flex: 1, overflowY: 'auto', border: '1px solid #ccc', marginBottom: '20px' }}>
-          {materials.map(mat => (
+          {materials.map((mat,idx) => (
             <div key={mat.materialId} style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
               <label style={{ display: 'flex', alignItems: 'center', width: '100%', cursor: 'pointer' }}>
                 <input 
@@ -51,6 +51,7 @@ export default function MaterialSelectionModal({ materials, onClose, onConfirm }
                   checked={selectedIds.includes(mat.materialId)} 
                   onChange={() => handleCheckboxChange(mat.materialId)}
                 />
+                <span className='px-2'>{idx+1}.</span>
                 <span style={{ marginLeft: '10px', flex: 1 }}>{mat.materialNm}</span>
                 <span style={{ color: '#666', flex: 1 }}>{mat.specification}</span>
                 <span style={{ color: 'blue', flex: 0.5, textAlign: 'right' }}>현재고: {mat.currentStock}</span>

@@ -13,9 +13,28 @@ export default function TableGrid({
   getRowClassName,
   alwaysEditable = false,
 }) {
+  // datetime-local input value 포맷 변환 함수
+  const formatDateTimeLocal = (val) => {
+    if (!val) return "";
+    try {
+      const date = new Date(val);
+
+      // 로컬 시간대 기준으로 yyyy-MM-ddTHH:mm 반환
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch {
+      return val;
+    }
+  };
+
   return (
     <div className="h-full shadow-md">
-      <table className="min-w-full divide-y divide-gray-200">
+      <table className="min-w-full table-fixed divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="sticky top-0 z-10 bg-gray-50 px-6 py-3 text-center text-sm font-semibold text-gray-500 uppercase tracking-wider w-12">
@@ -34,13 +53,13 @@ export default function TableGrid({
         <tbody className="bg-white divide-y divide-gray-200">
           {data.length === 0 ? (
             <tr>
-                <td
-                    colSpan={columns.length + 1}
-                    className="px-6 py-8 text-center text-sm text-gray-500"
-                >
-                    데이터가 없습니다.
-                </td>
-                </tr>
+              <td
+                colSpan={columns.length + 1}
+                className="px-6 py-2.5 text-center text-sm text-gray-500"
+              >
+                데이터가 없습니다.
+              </td>
+            </tr>
           ) : (
             data.map((row, rowIndex) => (
               <tr
@@ -48,66 +67,82 @@ export default function TableGrid({
                 onClick={() => onRowSelect?.(row)}
                 onDoubleClick={() => onRowDoubleClick?.(row)}
                 className={`cursor-pointer 
-                    ${getRowClassName ? getRowClassName(row) : ""} 
-                    ${selectedRow?.[rowKey] === row[rowKey] ? "bg-blue-100" : "hover:bg-gray-50"}
+                  ${getRowClassName ? getRowClassName(row) : ""} 
+                  ${
+                    selectedRow?.[rowKey] === row[rowKey]
+                      ? "bg-blue-100"
+                      : "hover:bg-gray-50"
+                  }
                 `}
-                >
+              >
                 <td className="px-6 py-2.5 text-sm font-medium text-gray-900">
-                    {rowIndex + 1}
+                  {rowIndex + 1}
                 </td>
                 {columns.map((col) => {
-                    const isEditing =
+                  const isEditing =
                     !readOnly &&
                     col.editable &&
                     (alwaysEditable || editingRowId === row[rowKey]);
-                    return (
+
+                  return (
                     <td
-                        key={col.accessor}
-                        className="px-6 py-2.5 text-sm text-gray-700"
-                        >
-                        {isEditing ? (
+                      key={col.accessor}
+                      className="px-6 py-2.5 text-sm text-gray-700"
+                    >
+                      {isEditing ? (
                         col.editor === "select" ? (
-                            <select
+                          <select
                             value={row[col.accessor] ?? ""}
                             onChange={(e) =>
-                                onCellUpdate?.(rowIndex, col.accessor, e.target.value)
+                              onCellUpdate?.(rowIndex, col.accessor, e.target.value)
                             }
                             className="w-full bg-white outline-none border border-none px-2 py-1 text-sm"
-                            >
-                            {col.options.map((opt) => (
-                                <option key={opt} value={opt}>
+                          >
+                            {col.options?.map((opt) => (
+                              <option key={opt} value={opt}>
                                 {opt}
-                                </option>
+                              </option>
                             ))}
-                            </select>
+                          </select>
                         ) : col.editor === "number" ? (
-                            <input
-                            type="text"
-                            value={row[col.accessor] ?? ""}
-                            onChange={(e) => onCellUpdate?.(rowIndex, col.accessor, e.target.value)}
-                            className="w-full bg-white outline-none border border-none px-2 py-1 text-sm"
-                            />
-                        ) : (
-                            <input
+                          <input
                             type="number"
                             value={row[col.accessor] ?? 0}
-                            min={0}
-                            onChange={(e) => {
-                                const val = parseInt(e.target.value, 10);
-                                onCellUpdate?.(rowIndex, col.accessor, isNaN(val) ? 0 : Math.max(0, val));
-                            }}
+                            onChange={(e) =>
+                              onCellUpdate?.(
+                                rowIndex,
+                                col.accessor,
+                                e.target.value === "" ? null : Number(e.target.value)
+                              )
+                            }
                             className="w-full bg-white outline-none border border-none px-2 py-1 text-sm text-right"
-                            />
-                        )
+                          />
+                        ) : col.editor === "datetime" ? (
+                          <input
+                            type="datetime-local"
+                            value={formatDateTimeLocal(row[col.accessor])}
+                            onChange={(e) =>
+                              onCellUpdate?.(rowIndex, col.accessor, e.target.value)
+                            }
+                            className="w-full bg-white outline-none border border-none px-2 py-1 text-sm"
+                          />
                         ) : (
-                            // cell 프로퍼티 우선 적용
-                            col.cell ? col.cell(row) : row[col.accessor] ?? ""
-                        )}
-                        </td>
-
-                    );
+                          <input
+                            type="text"
+                            value={row[col.accessor] ?? ""}
+                            onChange={(e) =>
+                              onCellUpdate?.(rowIndex, col.accessor, e.target.value)
+                            }
+                            className="w-full bg-white outline-none border border-none px-2 py-1 text-sm"
+                          />
+                        )
+                      ) : (
+                        col.cell ? col.cell(row) : row[col.accessor] ?? ""
+                      )}
+                    </td>
+                  );
                 })}
-                </tr>
+              </tr>
             ))
           )}
         </tbody>

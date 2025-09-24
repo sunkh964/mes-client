@@ -8,12 +8,43 @@ const WORK_RESULT_API_URL = "http://localhost:8082/api/work-results";
 
 // 날짜 포맷팅 함수
 const formatDateTime = (dateTime) => {
-  if (!dateTime) return '-';
-  return new Date(dateTime).toLocaleString('ko-KR', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', hour12: false
-  });
+  if (!dateTime) return "-";
+  try {
+    // "2025-09-23T12:23:22.929" → "2025-09-23 12:23:22.929"
+    const normalized = dateTime.replace("T", " ");
+    const dt = new Date(normalized);
+    if (isNaN(dt.getTime())) return "-";
+    return dt.toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+  } catch {
+    return "-";
+  }
 };
+
+
+// 총 작업시간 함수
+const calculateTotalTime = (start, end) => {
+  if (!start || !end) return null;
+
+  const startDate = new Date(start.replace("T", " "));
+  const endDate = new Date(end.replace("T", " "));
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return null;
+
+  const diffMs = endDate - startDate;
+  const minutes = Math.floor(diffMs / 60000);
+  return `${minutes}분`;   // ← 항상 "n분"으로 표시
+};
+
+
+
 
 export default function WorkResults() {
   // --- 1. 상태(State) 정의 ---
@@ -60,7 +91,6 @@ export default function WorkResults() {
     fetchResults(filters);
   }, [filters, fetchResults]);
 
-
   // --- 4. 사이드 이펙트 (Side Effects) ---
   // 렌더링 후 특정 작업을 수행해야 할 때 사용합니다. (주로 데이터 fetching, 아이콘 버튼 연동)
 
@@ -87,6 +117,11 @@ export default function WorkResults() {
     { header: "불량품", accessor: "defectiveQuantity" },
     { header: "시작시간", accessor: "startTime", render: (val) => formatDateTime(val) },
     { header: "종료시간", accessor: "endTime", render: (val) => formatDateTime(val) },
+    {
+      header: "총 작업시간",
+      accessor: "totalTime",
+      render: (_, row) => calculateTotalTime(row.startTime, row.endTime) ?? "-"
+    },
     { header: "상태", accessor: "status" },
     { header: "비고", accessor: "remark" },
   ];
