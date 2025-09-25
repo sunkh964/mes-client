@@ -54,14 +54,6 @@ const routesConfig = [
         { name: "출하 등록 및 조회", path: "/shipment" },
     ],
   },
-  {
-    title: "테스트",
-    path: "/test/boms",
-    pageTitle: "테스트",
-    items: [
-        { name: "bom 조회", path: "/test/boms" },
-    ],
-  },
 ];
 
 export default routesConfig;

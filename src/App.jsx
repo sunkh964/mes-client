@@ -32,8 +32,6 @@ import BlockQC from "./pages/BlockQC";
 import Shipment from "./pages/Shipment";
 import MaterialQC from "./pages/MaterialQC";
 
-// 테스트
-import BomInquiry from "./inquiry/BomInquiry";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -148,11 +146,6 @@ export default function App() {
         {/* 출하 관리*/}
         <Route path="shipment">
           <Route index element={<Shipment />} />
-        </Route>
-
-        {/* 조회 테스트  */}
-        <Route path="test">
-          <Route path="boms" element={<BomInquiry />} />
         </Route>
 
       </Route>
