@@ -5,8 +5,10 @@ import MaterialSelectionModal from "./MaterialSelectionModal.jsx";
 import TableGrid from "../layouts/TableGrid";
 
 // API URL
-const MATERIALS_API_URL = "http://localhost:8082/api/materials";
+// const MATERIALS_API_URL = "http://localhost:8082/api/materials";
+const MATERIALS_API_URL = "http://localhost:8083/api/proxy/materials"; // ERP API 서버
 const MATERIAL_INPUTS_API_URL = "http://localhost:8082/api/materials-usage";
+const INVENTORY_API_URL = "http://localhost:8083/api/proxy/inventory"; // ERP API 서버
 
 export default function MaterialUsage() {
   // --- 상태 관리 ---
@@ -20,7 +22,6 @@ export default function MaterialUsage() {
   const [error, setError] = useState(null);
 
   const employeeId = localStorage.getItem("employeeId");
-
   // 검색 조건 초기값
   const initialSearchParams = {
     resultId: "",
@@ -35,19 +36,40 @@ export default function MaterialUsage() {
   // --- IconContext 연동 ---
   const { setIconHandlers } = useIconContext();
 
-  // --- 데이터 조회 (자재 목록) ---
+  // --- 데이터 조회 (자재 + 재고) ---
   const fetchAllMaterials = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(MATERIALS_API_URL);
-      setAllMaterials(response.data);
+      // 1️⃣ 자재 목록 불러오기
+      const matRes = await axios.get(MATERIALS_API_URL);
+
+      // 2️⃣ 재고 목록 불러오기
+      const invRes = await axios.get(INVENTORY_API_URL);
+
+      // 3️⃣ inventory 데이터를 materialId 기준으로 매핑
+      const inventoryMap = {};
+      invRes.data.forEach(inv => {
+        inventoryMap[inv.materialId] = inv.onHand;
+      });
+
+      // 4️⃣ 자재 목록에 onHand 붙여주기
+      const merged = matRes.data.map(mat => ({
+        ...mat,
+        onHand: inventoryMap[mat.materialId] ?? 0, // 없으면 0으로 처리
+      }));
+
+      setAllMaterials(merged);
     } catch (err) {
+      console.error("자재/재고 조회 실패:", err);
       setError(err);
     } finally {
       setLoading(false);
     }
   }, []);
+
+
+
 
   // --- 데이터 조회 (자재 사용 내역) ---
   const fetchMaterialInputs = useCallback(async () => {
@@ -114,62 +136,94 @@ export default function MaterialUsage() {
 
   // '저장' 아이콘 클릭 시 실행될 함수
   const handleSave = async () => {
-    try {
-      // 로그인 사용자 ID 가져오기
-      const loggedInEmployeeId = localStorage.getItem("employeeId");
-
-      if (!loggedInEmployeeId) {
-        alert("로그인 정보가 없습니다. 다시 로그인 해주세요.");
-        return;
-      }
-
-      // 선택된 자재 사용 등록
-      for (const row of selectedRows) {
-        const dto = {
-          materialId: row.materialId,
-          quantity: parseInt(row.usageQuantity, 10),
-          unit: row.unit || "EA",
-          warehouse: row.warehouse || "DEFAULT",
-          location: row.location || "DEFAULT",
-          employeeId: loggedInEmployeeId, // 세션에서 불러온 사용자 ID
-          inputDate: new Date().toISOString().slice(0, 19).replace("T", " "),
-          remark: row.remark || "",
-
-          workOrderId: row.workOrderId,  
-          resultId: row.resultId
-        };
-
-        await axios.post(MATERIAL_INPUTS_API_URL, dto);
-      }
-
-      alert("자재 사용 등록이 완료되었습니다.");
-      setSelectedRows([]); // 등록 후 입력창 비움
-      // 저장 후 재조회 (현재고 + 내역 둘 다 업데이트)
-      await Promise.all([fetchAllMaterials(), fetchMaterialInputs()]);
-    } catch (err) {
-      console.error("자재 사용 등록 실패:", err);
-      alert("저장 중 오류가 발생했습니다.");
+  try {
+    const loggedInEmployeeId = localStorage.getItem("employeeId");
+    if (!loggedInEmployeeId) {
+      alert("로그인 정보가 없습니다. 다시 로그인 해주세요.");
+      return;
     }
-  };
+
+    const promises = selectedRows.map((row) => {
+      const dto = {
+        materialId: row.materialId,
+        quantity: parseInt(row.usageQuantity, 10),
+        unit: row.unit || "EA",
+        warehouse: row.warehouse || "DEFAULT",
+        location: row.location || "DEFAULT",
+        employeeId: loggedInEmployeeId,
+        inputDate: new Date().toISOString().slice(0, 19).replace("T", " "),
+        remark: row.remark || "",
+        workOrderId: row.workOrderId,
+        resultId: row.resultId,
+      };
+      console.log(row);
+
+      //MES
+      console.log(dto);
+      return axios.post(MATERIAL_INPUTS_API_URL,dto);
+      
+      //ERP
+      //return axios.post(MATERIAL_INPUTS_API_URL, dto).then(() =>
+        // axios.post(`${INVENTORY_API_URL}/deduct`, {
+        //   materialId: row.materialId,
+        //   warehouse: row.warehouse || "DEFAULT",
+        //   location: row.location || "DEFAULT",
+        //   quantity: parseInt(row.usageQuantity, 10),
+        // })
+      //);
+    });
+
+    //모든 등록 완료 대기
+    await Promise.all(promises);
+    alert("자재 사용 등록이 완료되었습니다.");
+    setSelectedRows([]);
+    await Promise.all([fetchAllMaterials(), fetchMaterialInputs()]);
+  } catch (err) {
+    console.error("자재 사용 등록 실패:", err);
+    alert("저장 중 오류가 발생했습니다.");
+  }
+};
 
   // 삭제 핸들러
   const handleDelete = async () => {
-    if (!selectedHistoryRowId) {
-      alert("삭제할 행을 선택하세요.");
+    const rowToDelete = selectedHistoryRow;
+    if (!rowToDelete) {alert("삭제할 행을 선택하세요.");
       return;
     }
 
     if (!window.confirm("선택한 자재 사용 내역을 삭제하시겠습니까?")) return;
 
     try {
-      await axios.delete(`${MATERIAL_INPUTS_API_URL}/${selectedHistoryRowId}`);
-      alert("삭제가 완료되었습니다.");
-      setSelectedHistoryRowId(null); // 선택 초기화
+      //  ERP 재고 복구
+      console.log("erp:",INVENTORY_API_URL);
+      console.log(rowToDelete);
+      console.log("token:", localStorage.getItem("token"));
+
+      await axios.delete(`${MATERIAL_INPUTS_API_URL}/${rowToDelete.inputId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      console.log(MATERIAL_INPUTS_API_URL);
+      console.log(rowToDelete.inputId);
+      
+      alert("삭제 및 재고 복구가 완료되었습니다.");
+      setSelectedHistoryRow(null); // 선택 초기화
       fetchMaterialInputs(); // 목록 새로고침
-    } catch (err) {
-      console.error("삭제 실패:", err);
-      alert("삭제 중 오류가 발생했습니다.");
-    }
+
+    }catch(err){
+      if (err.config?.url?.includes("inventory")) {
+        alert("ERP 재고 복구 실패 - ERP 서버를 확인하세요.");
+        console.error("ERP 복구 실패:", err);
+      } else if (err.config?.url?.includes("materials-usage")) {
+        alert("MES 기록 삭제 실패 - MES 서버를 확인하세요.");
+        console.error("MES 삭제 실패:", err);
+      } else {
+        alert("알 수 없는 오류 발생. 서버 로그를 확인하세요.");
+        console.error("예상치 못한 오류:", err);
+      }
+    }  
   };
 
   // 자재 사용 내역 수정(더블클릭 시 작동)
@@ -180,10 +234,24 @@ export default function MaterialUsage() {
     try {
       const dto = {
         ...row,
-        quantity: parseInt(newQuantity, 10),
+        quantity: parseInt(newQuantity, 10)
       };
-      await axios.put(`${MATERIAL_INPUTS_API_URL}/${row.inputId}`, dto);
-      alert("수정이 완료되었습니다.");
+      // 1️⃣ MES 수정
+      await axios.put(`${MATERIAL_INPUTS_API_URL}/${row.inputId}`, dto, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      // // 2️⃣ ERP 재고 수정 (해당 자재의 OnHand 값을 새 값으로 교체)
+      // await axios.put(`${INVENTORY_API_URL}/update`, {
+      //   materialId: row.materialId,
+      //   warehouse: row.warehouse,
+      //   location: row.location,
+      //   quantity: parseInt(newQuantity, 10),
+      // });
+
+      alert("수정 및 재고 반영이 완료되었습니다.");
       fetchMaterialInputs();
     } catch (err) {
       console.error("수정 실패:", err);
@@ -207,7 +275,7 @@ export default function MaterialUsage() {
         onDelete: null,
       });
     };
-  }, [setIconHandlers, searchParams, selectedRows]);
+  }, [setIconHandlers, searchParams, selectedRows,selectedHistoryRow]);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -221,7 +289,7 @@ export default function MaterialUsage() {
     { header: "작업지시 ID", accessor: "workOrderId", editable: true },
     { header: "자재 ID", accessor: "materialId" },
     { header: "자재명", accessor: "materialNm" },
-    { header: "현재고", accessor: "currentStock" },
+    { header: "현재고", accessor: "onHand" },
     { header: "사용량", accessor: "usageQuantity", editable: true, editor: "number" }
   ];
 
