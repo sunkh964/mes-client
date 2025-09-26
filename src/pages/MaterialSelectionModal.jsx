@@ -54,7 +54,7 @@ export default function MaterialSelectionModal({ materials, onClose, onConfirm }
                 <span className='px-2'>{idx+1}.</span>
                 <span style={{ marginLeft: '10px', flex: 1 }}>{mat.materialNm}</span>
                 <span style={{ color: '#666', flex: 1 }}>{mat.specification}</span>
-                <span style={{ color: 'blue', flex: 0.5, textAlign: 'right' }}>현재고: {mat.currentStock}</span>
+                <span style={{ color: 'blue', flex: 0.5, textAlign: 'right' }}>현재고: {mat.onHand}</span>
               </label>
             </div>
           ))}
