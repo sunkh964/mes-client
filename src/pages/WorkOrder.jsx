@@ -30,7 +30,7 @@ export default function WorkOrder() {
       const response = await axios.get(API_URL);
       setWorkOrders(response.data);
       if (response.data.length > 0) {
-        setSelectedWorkOrder(response.data[0]); // ✅ 첫 번째 행 자동 선택
+        setSelectedWorkOrder(response.data[0]); // 첫 번째 행 자동 선택
       }
     } catch (error) {
       console.error("작업지시 데이터 조회 실패:", error);

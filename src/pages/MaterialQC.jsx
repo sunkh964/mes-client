@@ -180,7 +180,7 @@ export default function MaterialQC() {
       accessor: "result",
       editable: true,
       editor: "select",
-      options: ["PASS", "FAIL", "PENDING"],
+      options: ["PASS", "FAIL", "PARTIAL","PENDING"],
     },
     { header: "합격 수량", accessor: "passQuantity", editable: true, editor: "number" },
     { header: "불합격 수량", accessor: "failQuantity", editable: true, editor: "number" },
@@ -231,6 +231,7 @@ export default function MaterialQC() {
               <option value="">전체</option>
               <option value="PASS">PASS</option>
               <option value="FAIL">FAIL</option>
+              <option value="PARTIAL">PARTIAL</option>
               <option value="PENDING">PENDING</option>
             </select>
           </div>
