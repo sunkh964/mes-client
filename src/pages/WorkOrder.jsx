@@ -10,6 +10,13 @@ export default function WorkOrder() {
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
   const [editingRowId, setEditingRowId] = useState(null);
 
+  // 콤보박스 데이터 상태
+  const [processList, setProcessList] = useState([]);
+  const [blockList, setBlockList] = useState([]);
+  const [workCenterList, setWorkCenterList] = useState([]);
+  const [equipmentList, setEquipmentList] = useState([]);
+  const [employeeList, setEmployeeList] = useState([]);
+
   // 검색 조건
   const initialSearchParams = {
     processId: "",
@@ -27,7 +34,10 @@ export default function WorkOrder() {
   // ================= 전체 조회 =================
   const fetchWorkOrders = async () => {
     try {
-      const response = await axios.get(API_URL);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(API_URL, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setWorkOrders(response.data);
       if (response.data.length > 0) {
         setSelectedWorkOrder(response.data[0]); // ✅ 첫 번째 행 자동 선택
@@ -39,10 +49,40 @@ export default function WorkOrder() {
     }
   };
 
+  // ================= 콤보 데이터 =================
+  const fetchComboData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
+      const [procRes, blockRes, wcRes, eqRes, empRes] = await Promise.all([
+        axios.get("http://localhost:8082/api/workOrders/processes", { headers }),
+        axios.get("http://localhost:8082/api/workOrders/blocks", { headers }),
+        axios.get("http://localhost:8082/api/workOrders/workCenters", { headers }),
+        axios.get("http://localhost:8082/api/workOrders/equipments", { headers }),
+        axios.get("http://localhost:8082/api/workOrders/employees", { headers }),
+      ]);
+
+      setProcessList(procRes.data);
+      setBlockList(blockRes.data);
+      setWorkCenterList(wcRes.data);
+      setEquipmentList(eqRes.data);
+      setEmployeeList(empRes.data);
+
+      console.log("equipmentList 응답:", eqRes.data);
+    } catch (err) {
+      console.error("콤보박스 데이터 불러오기 실패:", err);
+    }
+  };
+  useEffect(() => {
+  console.log("workCenterList:", workCenterList);
+}, [workCenterList]);
+
   // ================= 검색 =================
   const handleSearch = async () => {
     try {
-      const response = await axios.get(`${API_URL}/search`, { params: searchParams });
+      const response = await axios.get(`${API_URL}/search`, {
+        params: searchParams,
+      });
       setWorkOrders(response.data);
       setSelectedWorkOrder(response.data.length > 0 ? response.data[0] : null);
     } catch (err) {
@@ -55,25 +95,24 @@ export default function WorkOrder() {
     if (workOrders.some((wo) => wo._isNew)) return; // 이미 신규행 있으면 추가 안 함
 
     const newRow = {
-      workOrderId: null,
+      workOrderId: `temp-${Date.now()}-${Math.random()}`, // ✅ 고유 ID
       processId: "",
       blockPlanId: "",
       blockId: "",
-      workCenterId: "",
-      equipmentId: "",
+      workCenterId: null, // "" 대신 null
+      equipmentId: null,
       employeeId: "",
       instruction: "",
       quantityToProduce: 0,
       quantityProduced: 0,
-      plannedStartTime: "",
-      plannedEndTime: "",
-      actualStartTime: "",
-      actualEndTime: "",
+      plannedStartTime: null,
+      plannedEndTime: null,
+      actualStartTime: null,
+      actualEndTime: null,
       currentStatus: "waiting",
-      priority: "우선순위",
+      priority: 1, // 기본값
       remark: "",
       _isNew: true,
-
     };
 
     setWorkOrders((prev) => [...prev, newRow]);
@@ -98,42 +137,45 @@ export default function WorkOrder() {
       return;
     }
 
+    // ✅ "" → null 변환
+    const payload = {
+      ...selectedWorkOrder,
+      processId: selectedWorkOrder.processId || null,
+      blockPlanId: selectedWorkOrder.blockPlanId || null,
+      blockId: selectedWorkOrder.blockId || null,
+      workCenterId: selectedWorkOrder.workCenterId || null,
+      equipmentId: selectedWorkOrder.equipmentId || null,
+      employeeId: selectedWorkOrder.employeeId || null,
+    };
+
+    // ✅ 필수값 검증
+    if (!payload.processId || !payload.blockId || !payload.workCenterId) {
+      alert("공정, 블록, 작업장은 필수 선택 항목입니다.");
+      return;
+    }
+
     try {
-      if (selectedWorkOrder._isNew || !selectedWorkOrder.workOrderId) {
+      if (selectedWorkOrder._isNew || selectedWorkOrder.workOrderId.startsWith("temp-")) {
         // 신규 → POST
-        await axios.post(API_URL, {
-          processId: selectedWorkOrder.processId,
-          blockPlanId: selectedWorkOrder.blockPlanId,
-          blockId: selectedWorkOrder.blockId,
-          workCenterId: selectedWorkOrder.workCenterId,
-          equipmentId: selectedWorkOrder.equipmentId,
-          employeeId: selectedWorkOrder.employeeId,
-          instruction: selectedWorkOrder.instruction,
-          quantityToProduce: selectedWorkOrder.quantityToProduce,
-          quantityProduced: selectedWorkOrder.quantityProduced,
-          plannedStartTime: selectedWorkOrder.plannedStartTime || null,
-          plannedEndTime: selectedWorkOrder.plannedEndTime || null,
-          actualStartTime: selectedWorkOrder.actualStartTime || null,
-          actualEndTime: selectedWorkOrder.actualEndTime || null,
-          currentStatus: selectedWorkOrder.currentStatus,
-          priority: selectedWorkOrder.priority,
-          remark: selectedWorkOrder.remark,
+        await axios.post(API_URL, payload, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         alert("신규 작업지시 등록 완료!");
       } else {
         // 기존 → PUT
-        await axios.put(`${API_URL}/${selectedWorkOrder.workOrderId}`, selectedWorkOrder);
+        await axios.put(`${API_URL}/${selectedWorkOrder.workOrderId}`, payload, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
         alert("작업지시 수정 완료!");
       }
 
-      await fetchWorkOrders(); // 목록 새로고침
-      setEditingRowId(null); // 저장 후 수정모드 해제
+      await fetchWorkOrders();
+      setEditingRowId(null);
     } catch (err) {
       console.error("저장 실패:", err);
       alert("저장 실패: " + (err.response?.data?.message || err.message));
     }
   };
-
 
   // ================= 삭제 =================
   const handleDelete = async () => {
@@ -141,7 +183,7 @@ export default function WorkOrder() {
       alert("삭제할 행을 선택하세요.");
       return;
     }
-    if (!selectedWorkOrder.workOrderId) {
+    if (!selectedWorkOrder.workOrderId || selectedWorkOrder._isNew) {
       alert("신규 행은 삭제할 수 없습니다.");
       return;
     }
@@ -185,31 +227,87 @@ export default function WorkOrder() {
       });
   }, [searchParams, workOrders, selectedWorkOrder]);
 
+  // 최초 로딩 시 불러오기
   useEffect(() => {
     fetchWorkOrders();
+    fetchComboData();
   }, []);
+
+  useEffect(() => {
+  console.log("현재 workOrders:", workOrders);
+  if (workOrders.length > 0) {
+    console.log("첫 번째 행:", workOrders[0]);
+  }
+}, [workOrders]);
+
 
   // ================= 컬럼 정의 =================
   const columns = [
-    { header: "공정 ID", accessor: "processId", editable: true },
-    { header: "블록계획 ID", accessor: "blockPlanId", editable: true },
-    { header: "블록 ID", accessor: "blockId", editable: true },
-    { header: "작업장", accessor: "workCenterId", editable: true },
-    { header: "설비", accessor: "equipmentId", editable: true },
-    { header: "담당자", accessor: "employeeId", editable: true },
+    { header: "블록 생산계획 ID", accessor: "blockPlanId", editable: true },
+    {
+      header: "블록 ID",
+      accessor: "blockId",
+      editable: true,
+      editor: "select",
+      options: blockList.map((b) => ({ value: b.blockId, label: `${b.blockId} (${b.blockNm})` })),
+    },
+    {
+      header: "공정 ID",
+      accessor: "processId",
+      editable: true,
+      editor: "select",
+      options: processList.map((p) => ({ value: p.processId, label: `${p.processId} (${p.processNm})` })),
+    },
+    {
+      header: "작업장",
+      accessor: "workCenterId",
+      editable: true,
+      editor: "select",
+      // 선택된 공정(processId)에 따라 필터링
+      getOptions: (row) =>
+        workCenterList
+          .filter((w) => w.processId === row.processId)
+          .map((w) => ({ value: w.workCenterId, label: w.workCenterId })),
+    },
+    {
+      header: "설비",
+      accessor: "equipmentId",
+      editable: true,
+      editor: "select",
+      getOptions: (row) => {
+        console.log("equipment getOptions 실행 - row:", row);
+        return equipmentList
+          .filter((e) => e.workCenterId === row.workCenterId)
+          .map((e) => ({
+            value: e.equipmentId,
+            label: `${e.equipmentId} (${e.equipmentNm})`,
+          }));
+      },
+    },
+    {
+      header: "담당자",
+      accessor: "employeeId",
+      editable: true,
+      editor: "select",
+      options: employeeList.map((emp) => ({ value: emp.employeeId, label: emp.employeeNm })),
+    },
     {
       header: "우선순위",
       accessor: "priority",
       editable: true,
       editor: "select",
-      options: [1, 2, 3, 4, 5],
+      options: [1, 2, 3, 4, 5].map((n) => ({ value: n, label: n.toString() })), // ✅ object 통일
     },
     {
       header: "상태",
       accessor: "currentStatus",
       editable: true,
       editor: "select",
-      options: ["waiting", "in-progress", "completed"],
+      options: [
+        { value: "waiting", label: "waiting" },
+        { value: "in-progress", label: "progress" },
+        { value: "completed", label: "completed" },
+      ],
     },
     { header: "비고", accessor: "remark", editable: true },
   ];
@@ -227,16 +325,6 @@ export default function WorkOrder() {
       {/* ================= 검색 영역 ================= */}
       <div className="border border-gray-300 p-3 mb-5">
         <div className="flex flex-wrap gap-6">
-          {/* <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">공정 ID:</label>
-            <input
-              type="text"
-              name="processId"
-              value={searchParams.processId}
-              onChange={handleSearchChange}
-              className="border px-2 py-1 text-sm w-32"
-            />
-          </div> */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">블록 ID:</label>
             <input
@@ -321,15 +409,32 @@ export default function WorkOrder() {
           selectedRow={selectedWorkOrder}
           onRowSelect={setSelectedWorkOrder}
           onCellUpdate={(rowIndex, field, value) => {
+            console.log("셀 업데이트:", field, value);
             setWorkOrders((prev) =>
-              prev.map((wo, i) =>
-                i === rowIndex ? { ...wo, [field]: value } : wo
-              )
+              prev.map((wo, i) => {
+                if (i !== rowIndex) return wo;
+
+                const updated = { ...wo, [field]: value };
+
+                // ✅ 공정 선택 시 → 해당 공정의 첫 작업장 자동 세팅
+                if (field === "processId") {
+                  const availableWCs = workCenterList.filter((w) => w.processId === value);
+                  updated.workCenterId = availableWCs.length > 0 ? availableWCs[0].workCenterId : null;
+                  updated.equipmentId = ""; // 설비 초기화
+                }
+
+                // ✅ 작업장 선택 변경 시 → 설비 초기화
+                if (field === "workCenterId") {
+                  updated.equipmentId = "";
+                }
+
+                return updated;
+              })
             );
           }}
           readOnly={false}
-          editingRowId={editingRowId} // 현재 수정중인 행 ID 전달
-          onRowDoubleClick={handleRowDoubleClick} // 더블클릭 
+          editingRowId={editingRowId}
+          onRowDoubleClick={handleRowDoubleClick}
           getRowClassName={(row) => {
             if (selectedWorkOrder?.workOrderId === row.workOrderId) {
               return "bg-blue-100"; // 선택된 행
@@ -337,51 +442,13 @@ export default function WorkOrder() {
             if (row.priority == 1) {
               return "bg-rose-100"; // 우선순위 1
             }
-            // 작업장/설비/담당자 누락 → 노란색
             if (!row.workCenterId || !row.equipmentId || !row.employeeId) {
-              return "bg-yellow-50";
+              return "bg-yellow-50"; // 누락 표시
             }
             return "";
           }}
         />
       </div>
-
-      {/* ================= 상세조회 ================= */}
-      {/* <h3 className="mb-2 text-lg font-semibold">상세조회</h3>
-      <div style={{ border: "1px solid #ccc", maxHeight: 400, overflowX: "auto" }}>
-        {selectedWorkOrder ? (
-          <table border="1" style={{ width: "100%", borderCollapse: "collapse", tableLayout: "auto" }}>
-            <thead style={{ backgroundColor: "#f2f2f2" }}>
-              <tr>
-                <th style={{ padding: 8 }}>설비 ID</th>
-                <th style={{ padding: 8 }}>지시사항</th>
-                <th style={{ padding: 8 }}>생산 예정 수량</th>
-                <th style={{ padding: 8 }}>생산 완료 수량</th>
-                <th style={{ padding: 8 }}>계획 시작일</th>
-                <th style={{ padding: 8 }}>계획 종료일</th>
-                <th style={{ padding: 8 }}>실제 시작일</th>
-                <th style={{ padding: 8 }}>실제 종료일</th>
-                <th style={{ padding: 8 }}>비고</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.equipmentId || "-"}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.instruction}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.quantityToProduce}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.quantityProduced}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.plannedStartTime}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.plannedEndTime}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.actualStartTime}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.actualEndTime}</td>
-                <td style={{ padding: 8 }}>{selectedWorkOrder.remark}</td>
-              </tr>
-            </tbody>
-          </table>
-        ) : (
-          <div style={{ padding: 10 }}>조회된 작업지시가 없습니다.</div>
-        )}
-      </div> */}
-    </div >
+    </div>
   );
 }
