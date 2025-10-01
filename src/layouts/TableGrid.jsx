@@ -93,16 +93,23 @@ export default function TableGrid({
                         col.editor === "select" ? (
                           <select
                             value={row[col.accessor] ?? ""}
-                            onChange={(e) =>
-                              onCellUpdate?.(rowIndex, col.accessor, e.target.value)
-                            }
+                            onChange={(e) => {
+                              console.log("변경됨:", col.accessor, e.target.value);
+                              onCellUpdate?.(rowIndex, col.accessor, e.target.value);
+                            }}
                             className="w-full bg-white outline-none border border-none px-2 py-1 text-sm"
                           >
-                            {col.options?.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
+                            {(col.getOptions ? col.getOptions(row) : col.options)?.map((opt) =>
+                              typeof opt === "object" ? (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ) : (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              )
+                            )}
                           </select>
                         ) : col.editor === "number" ? (
                           <input

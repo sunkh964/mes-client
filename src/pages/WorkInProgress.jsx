@@ -2,35 +2,23 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
 import { useNavigate } from "react-router-dom";
-import WorkResult from "./WorkResult"; // 관리자용 뷰 import
+import WorkResult from "./WorkResult"; 
 import TableGrid from "../layouts/TableGrid";
 
 const WORK_ORDER_API_URL = "http://localhost:8082/api/workOrders";
 const WORK_RESULT_API_URL = "http://localhost:8082/api/work-results";
 
-// 날짜 포맷팅 함수
-const formatDateTime = (dateTime) => {
-  if (!dateTime) return "";
-  return new Date(dateTime).toLocaleString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-};
+// 날짜 포맷 (화면 표시용)
+const formatDateTime = (dateTime) =>
+  dateTime ? dateTime.replace("T", " ").substring(0, 16) : "";
 
 // 총 작업시간 계산 함수 (분 단위)
 const calculateTotalTime = (start, end) => {
   if (!start) return null;
   const startDate = new Date(start);
   const endDate = end ? new Date(end) : new Date();
-
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return null;
-
-  const diffMs = endDate - startDate;
-  return Math.floor(diffMs / 60000); // 분 단위
+  return Math.floor((endDate - startDate) / 60000);
 };
 
 export default function WorkInProgress() {
@@ -46,46 +34,27 @@ export default function WorkInProgress() {
   const { setIconHandlers } = useIconContext();
   const navigate = useNavigate();
 
-  // --- 데이터 조회 로직 ---
+  // --- 데이터 조회 ---
   const fetchWorkOrders = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(WORK_ORDER_API_URL);
-
-      // 필터링: 완료/표준시간 초과/24시간 초과 → 숨김
       const filtered = response.data.filter((order) => {
-        // 1) 완료된 건 숨김
         if (order.currentStatus === "completed") return false;
-
-        // 2) 표준 작업시간 초과
         if (order.standardTime && order.startTime) {
-          const totalMinutes = calculateTotalTime(
-            order.startTime,
-            order.endTime
-          );
-          if (totalMinutes && totalMinutes >= order.standardTime) {
-            return false;
-          }
+          const totalMinutes = calculateTotalTime(order.startTime, order.endTime);
+          if (totalMinutes && totalMinutes >= order.standardTime) return false;
         }
-
-        // 3) 24시간 초과
         if (order.createdAt) {
           const created = new Date(order.createdAt);
-          const now = new Date();
-          const diffHours = (now - created) / (1000 * 60 * 60);
+          const diffHours = (new Date() - created) / (1000 * 60 * 60);
           if (diffHours >= 24) return false;
         }
-
         return true;
       });
 
       setWorkOrders(filtered);
-      if (filtered.length > 0) {
-        handleSelectOrder(filtered[0]);
-      } else {
-        setSelectedOrder(null);
-        setCurrentResult(null);
-      }
+      filtered.length > 0 ? handleSelectOrder(filtered[0]) : setSelectedOrder(null);
     } catch (err) {
       setError(err);
     } finally {
@@ -123,7 +92,7 @@ export default function WorkInProgress() {
     }
   }, []);
 
-  // --- 이벤트 핸들러 ---
+  // --- 이벤트 ---
   const handleSelectOrder = useCallback(
     (order) => {
       setSelectedOrder(order);
@@ -134,79 +103,63 @@ export default function WorkInProgress() {
 
   const handleResultChange = (e) => {
     const { name, value } = e.target;
+    const parsed = parseInt(value, 10);
     setCurrentResult((prev) => ({
       ...prev,
-      [name]: parseInt(value, 10) || 0,
+      [name]: isNaN(parsed) || parsed < 0 ? 0 : parsed,
     }));
   };
 
   const handleTimeUpdate = async (timeField) => {
     if (!currentResult) return;
-    const now = new Date().toISOString();
+    const now = new Date().toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
     const updatedResult = { ...currentResult, [timeField]: now };
 
     try {
-      let response;
-      if (updatedResult.resultId) {
-        response = await axios.put(
-          `${WORK_RESULT_API_URL}/${updatedResult.resultId}`,
-          updatedResult
-        );
-      } else {
-        response = await axios.post(WORK_RESULT_API_URL, updatedResult);
-      }
+      const response = updatedResult.resultId
+        ? await axios.put(`${WORK_RESULT_API_URL}/${updatedResult.resultId}`, updatedResult)
+        : await axios.post(WORK_RESULT_API_URL, updatedResult);
       setCurrentResult(response.data);
-      alert(
-        `${timeField === "startTime" ? "작업 시작" : "작업 종료"} 시간이 등록되었습니다.`
-      );
-    } catch (err) {
+      alert(`${timeField === "startTime" ? "작업 시작" : "작업 종료"} 시간이 등록되었습니다.`);
+    } catch {
       alert("시간 등록 중 오류 발생");
     }
   };
 
   const handleSaveResult = async () => {
     if (!currentResult) return;
+    if ((currentResult.completedQuantity ?? 0) <= 0 && (currentResult.defectiveQuantity ?? 0) <= 0) {
+      alert("합격품 또는 불량품 수량 중 하나 이상은 입력해야 합니다.");
+      return;
+    }
     try {
-      let response;
-      if (currentResult.resultId) {
-        response = await axios.put(
-          `${WORK_RESULT_API_URL}/${currentResult.resultId}`,
-          currentResult
-        );
-      } else {
-        response = await axios.post(WORK_RESULT_API_URL, currentResult);
-      }
+      const response = currentResult.resultId
+        ? await axios.put(`${WORK_RESULT_API_URL}/${currentResult.resultId}`, currentResult)
+        : await axios.post(WORK_RESULT_API_URL, currentResult);
       setCurrentResult(response.data);
       alert("실적이 저장되었습니다.");
-    } catch (err) {
+    } catch {
       alert("실적 저장 중 오류 발생");
     }
   };
 
   const goToDetailPage = () => {
-    if (selectedOrder) {
-      navigate(`/main/work-results-detail/${selectedOrder.workOrderId}`);
-    } else {
-      alert("작업을 먼저 선택하세요.");
-    }
+    selectedOrder
+      ? navigate(`/main/work-results-detail/${selectedOrder.workOrderId}`)
+      : alert("작업을 먼저 선택하세요.");
   };
 
   const handleViewChange = (mode) => {
-    if (mode === "ADMIN") {
-      const userRole = localStorage.getItem("role");
-      if (userRole === "WORKER") {
-        alert("권한이 없습니다.");
-        return;
-      }
+    if (mode === "ADMIN" && localStorage.getItem("role") === "WORKER") {
+      alert("권한이 없습니다.");
+      return;
     }
     setViewMode(mode);
   };
 
   // --- 사이드 이펙트 ---
   useEffect(() => {
-    if (viewMode === "WORKER") {
-      fetchWorkOrders();
-    }
+    if (viewMode === "WORKER") fetchWorkOrders();
   }, [viewMode, fetchWorkOrders]);
 
   useEffect(() => {
@@ -221,12 +174,11 @@ export default function WorkInProgress() {
     { header: "상태", accessor: "currentStatus" },
     { header: "작업장", accessor: "workCenterId" },
     { header: "설비", accessor: "equipmentId" },
-    { header: "표준시간(분)", accessor: "standardTime" }, // 표준 작업시간 표시
+    { header: "표준시간(분)", accessor: "standardTime" },
   ];
 
   // --- 렌더링 ---
-  if (loading && viewMode === "WORKER")
-    return <p>데이터를 불러오는 중입니다...</p>;
+  if (loading && viewMode === "WORKER") return <p>데이터를 불러오는 중입니다...</p>;
   if (error) return <p>에러가 발생했습니다: {error.message}</p>;
 
   return (
@@ -257,7 +209,7 @@ export default function WorkInProgress() {
             transition: "transform 0.3s ease-in-out",
             transform: viewMode === "ADMIN" ? "translateX(100%)" : "translateX(0%)",
           }}
-        ></div>
+        />
         <div
           onClick={() => handleViewChange("WORKER")}
           style={{
@@ -292,6 +244,7 @@ export default function WorkInProgress() {
 
       {viewMode === "WORKER" ? (
         <div style={{ display: "flex", gap: "20px", flex: 1, overflow: "hidden" }}>
+          {/* 작업 리스트 */}
           <div style={{ flex: 2, border: "1px solid #ccc", display: "flex", flexDirection: "column" }}>
             <h3 style={{ margin: 0, padding: "10px", backgroundColor: "#f2f2f2" }}>작업 리스트</h3>
             <div style={{ overflow: "auto", flex: 1 }}>
@@ -302,17 +255,20 @@ export default function WorkInProgress() {
                 selectedRow={selectedOrder}
                 onRowSelect={handleSelectOrder}
                 readOnly={true}
-                getRowClassName={(row) => {
-                  if (row.currentStatus === "completed") return "bg-red-200";
-                  if (row.currentStatus === "in_progress") return "bg-blue-100";
-                  return "";
-                }}
+                getRowClassName={(row) =>
+                  row.currentStatus === "completed"
+                    ? "bg-red-200"
+                    : row.currentStatus === "in_progress"
+                    ? "bg-blue-100"
+                    : ""
+                }
               />
             </div>
           </div>
 
+          {/* 실적 등록 */}
           <div style={{ flex: 1, border: "1px solid #ccc", padding: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
               <h3>{selectedOrder ? `${selectedOrder.instruction}` : "작업 선택"}</h3>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button onClick={goToDetailPage}>상세 내역</button>
@@ -321,7 +277,7 @@ export default function WorkInProgress() {
             </div>
 
             {currentResult ? (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", alignItems: "center" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
                 <button
                   onClick={() => handleTimeUpdate("startTime")}
                   disabled={currentResult.startTime}
@@ -352,8 +308,12 @@ export default function WorkInProgress() {
                 >
                   종료
                 </button>
-                <span><b>시작시간:</b> {formatDateTime(currentResult.startTime)}</span>
-                <span><b>종료시간:</b> {formatDateTime(currentResult.endTime)}</span>
+                <span>
+                  <b>시작시간:</b> {formatDateTime(currentResult.startTime)}
+                </span>
+                <span>
+                  <b>종료시간:</b> {formatDateTime(currentResult.endTime)}
+                </span>
                 <span style={{ gridColumn: "1 / -1" }}>
                   <b>총 작업시간:</b>{" "}
                   {calculateTotalTime(currentResult.startTime, currentResult.endTime)
@@ -383,15 +343,12 @@ export default function WorkInProgress() {
                 <textarea
                   name="remark"
                   value={currentResult.remark || ""}
-                  onChange={(e) => setCurrentResult((prev) => ({ ...prev, remark: e.target.value }))}
+                  onChange={(e) =>
+                    setCurrentResult((prev) => ({ ...prev, remark: e.target.value }))
+                  }
                   placeholder="상세 내용 및 비고"
                   rows="4"
-                  style={{
-                    gridColumn: "1 / -1",
-                    padding: "8px",
-                    width: "100%",
-                    border: "1px solid black",
-                  }}
+                  style={{ gridColumn: "1 / -1", padding: "8px", width: "100%", border: "1px solid black" }}
                 ></textarea>
               </div>
             ) : (

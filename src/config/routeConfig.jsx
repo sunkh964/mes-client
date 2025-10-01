@@ -6,25 +6,25 @@ const routesConfig = [
     pageTitle: "기준 정보 관리",
     items: [
       { name: "공정 라우팅 관리", path: "/main/processes" },
-      { name: "작업장/설비 관리", path: "/main/work-centers" }, // 루트 수정 필요
+      { name: "작업장/설비 관리", path: "/main/work-centers" }, 
       { name: "작업자/권한 관리", path: "/main/workers" },
-      { name: "생산계획 조회", path: "/main/project-plans" },
     ],
   },
   {
     title: "생산관리",
-    path: "/produce/blockPlans", 
+    path: "/produce/project-plans", 
     pageTitle: "생산 관리",
     items: [
+      { name: "생산계획 조회", path: "/produce/project-plans" },
       { name: "블록 생산 계획", path: "/produce/blockPlans" },
-      { name: "작업지시 생성", path: "/produce/workOrders" },
     ],
   },
   {
     title: "작업지시관리",
-    path: "/progress/workinprogress",
+    path: "/progress/workOrders",
     pageTitle: "작업지시관리",
     items: [
+      { name: "작업지시 생성", path: "/progress/workOrders" },
       { name: "작업 진행/실적 등록", path: "/progress/workinprogress" },
     ],
   },

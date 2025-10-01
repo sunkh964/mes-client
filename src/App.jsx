@@ -110,14 +110,14 @@ export default function App() {
           <Route path="work-centers" element={<WorkcenterManagement />} />
           <Route path="equipment" element={<EquipmentManagement />} />
           <Route path="workers" element={<WorkerInquiry />} />
-          <Route path="project-plans" element={<CheckProjectPlan />} />
+          
 
         </Route>
 
         {/* 생산 관리 */}
         <Route path="produce">
+          <Route path="project-plans" element={<CheckProjectPlan />} />
           <Route path="blockPlans" element={<BlockPlan />} />
-          <Route path="workOrders" element={<WorkOrder />} />
           <Route path="workorder-management" element={<WorkOrderInquiry />} /> {/* 삭제해야할듯 */}
           <Route path="orders" element={<WorkOrderInquiry />} />
 
@@ -125,6 +125,7 @@ export default function App() {
 
         {/* 작업지시 관리 */}
         <Route path="progress">
+          <Route path="workOrders" element={<WorkOrder />} />
           <Route path="workinprogress" element={<WorkInProgress />} />
           <Route path="work-results" element={<WorkResult />} />
         </Route>
