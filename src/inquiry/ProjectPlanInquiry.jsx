@@ -39,6 +39,45 @@ export default function ProjectPlanInquiry() {
     }
   }, []);
 
+  const handleStatusUpdate = async (planToUpdate) => {
+        const currentStatus = planToUpdate.status;
+        if (currentStatus === 2) { // '완료' 상태이면 더 이상 변경하지 않음
+            alert("'완료' 상태의 계획은 더 이상 변경할 수 없습니다.");
+            return;
+        }
+
+        const nextStatus = (currentStatus + 1) % 3; // 다음 상태 계산 (0->1, 1->2)
+        const nextStatusText = getStatusText(nextStatus);
+
+        if (!window.confirm(`'${planToUpdate.planId}' 계획의 상태를 '${nextStatusText}'(으)로 변경하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            // 1. 서버에 보낼 업데이트된 객체 생성
+            const updatedPlan = { ...planToUpdate, status: nextStatus };
+
+            // 2. 서버에 PUT 요청 전송 (API 서버를 통해 ERP로 전달)
+            await axios.put(`${ProjectPlan_Proxy_API_URL}/${planToUpdate.planId}`, updatedPlan, {
+                headers: { 'Authorization': `Bearer ${getToken()}` }
+            });
+
+            // 3. 화면(state)에도 변경사항 즉시 반영
+            setProjectPlans(currentPlans =>
+                currentPlans.map(plan =>
+                    plan.planId === planToUpdate.planId
+                        ? { ...plan, status: nextStatus }
+                        : plan
+                )
+            );
+            alert("상태가 성공적으로 변경되었습니다.");
+
+        } catch (err) {
+            console.error("상태 업데이트 실패:", err);
+            alert("상태 업데이트 중 오류가 발생했습니다.");
+        }
+    };
+
   // 컴포넌트 마운트 시 데이터 불러오기
   useEffect(() => {
     fetchData();
@@ -83,7 +122,6 @@ export default function ProjectPlanInquiry() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">계획 범위</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">시작일</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">종료일</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">진행률</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
            
             </tr>
@@ -98,8 +136,14 @@ export default function ProjectPlanInquiry() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{plan.planScope}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{plan.startDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{plan.endDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{plan.progressRate}%</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{getStatusText(plan.status)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <span
+                        onClick={() => handleStatusUpdate(plan)}
+                        className="font-semibold text-blue-600 cursor-pointer hover:underline"
+                    >
+                        {getStatusText(plan.status)}
+                    </span>
+                </td>
                   
                 </tr>
               ))

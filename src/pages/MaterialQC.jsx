@@ -4,11 +4,16 @@ import { useIconContext } from "../utils/IconContext";
 import TableGrid from "../layouts/TableGrid";
 
 const API_URL = "http://localhost:8082/api/qualityControl";
+const PO_API_URL = "http://localhost:8083/api/proxy/purchase-orders";
+const EMPLOYEES_API_URL = "http://localhost:8083/api/proxy/employees";
 
 export default function MaterialQC() {
   const [materialQC, setMaterialQC] = useState([]);
   const [selectedMaterialQC, setSelectedMaterialQC] = useState(null);
   const [editingRowId, setEditingRowId] = useState(null);
+
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
   // 검색 조건 초기값
   const initialSearchParams = {
@@ -23,19 +28,28 @@ export default function MaterialQC() {
   const { setIconHandlers } = useIconContext();
 
   // ================= 전체 조회 =================
-  const fetchMaterialQC = async () => {
-    try {
-      const res = await axios.get(`${API_URL}`);
-      setMaterialQC(res.data);
-      setSelectedMaterialQC(res.data.length > 0 ? res.data[0] : null);
-    } catch (e) {
-      console.error("자재 품질 데이터 조회 실패:", e);
-    }
-  };
+  const loadInitialData = async () => {
+        try {
+            // 여러 API를 병렬로 호출하여 동시에 데이터를 가져옵니다.
+            const [qcRes, poRes, empRes] = await Promise.all([
+                axios.get(API_URL), // 기존 품질검사 목록 조회
+                axios.get(PO_API_URL),
+                axios.get(EMPLOYEES_API_URL)
+            ]);
 
-  useEffect(() => {
-    fetchMaterialQC();
-  }, []);
+            setMaterialQC(qcRes.data);
+            setSelectedMaterialQC(qcRes.data.length > 0 ? qcRes.data[0] : null);
+            setPurchaseOrders(poRes.data || []);
+            setEmployees(empRes.data || []);
+
+        } catch (e) {
+            console.error("초기 데이터 조회 실패:", e);
+        }
+    };
+
+    useEffect(() => {
+        loadInitialData(); // ★ 교체
+    }, []);
 
   // ================= 검색 =================
   const handleSearch = async () => {
@@ -105,7 +119,7 @@ export default function MaterialQC() {
         await axios.put(`${API_URL}/${selectedMaterialQC.qcId}`, selectedMaterialQC);
         alert("품질검사 수정 완료!");
       }
-      await fetchMaterialQC();
+      await loadInitialData();
       setEditingRowId(null); // 저장 후 수정 모드 해제
     } catch (err) {
       console.error("저장 실패:", err);
@@ -130,7 +144,7 @@ export default function MaterialQC() {
 
     try {
       await axios.delete(`${API_URL}/${selectedMaterialQC.qcId}`);
-      await fetchMaterialQC();
+      await loadInitialData();
       alert("삭제 완료!");
     } catch (err) {
       console.error("삭제 실패:", err);
@@ -141,7 +155,7 @@ export default function MaterialQC() {
   // ================= 초기화 =================
   const handleReset = () => {
     setSearchParams(initialSearchParams);
-    fetchMaterialQC();
+    loadInitialData();
   };
 
   const handleSearchChange = (e) => {
@@ -169,11 +183,25 @@ export default function MaterialQC() {
   // ================= 컬럼 정의 =================
   const columns = [
     { header: "검사 ID", accessor: "qcId" }, // 읽기 전용
-    { header: "발주 ID", accessor: "purchaseOrderId", editable: true, editor: "text" },
+    { 
+      header: "발주 ID", 
+      accessor: "purchaseOrderId", 
+      editable: true, 
+      editor: "select", // ★ select로 변경
+      // ★ options 추가: 발주 목록 데이터 사용
+      options: purchaseOrders.map(po => ({ value: po.purchaseOrderId, label: po.purchaseOrderId }))
+    },
     { header: "발주 상세 ID", accessor: "orderDetailId", editable: true, editor: "text" },
     { header: "작업지시 ID", accessor: "workOrderId", editable: true, editor: "text" },
     { header: "자재 ID", accessor: "materialId", editable: true, editor: "text" },
-    { header: "검사자 ID", accessor: "inspectorId", editable: true, editor: "text" },
+    { 
+      header: "검사자 ID", 
+      accessor: "inspectorId", 
+      editable: true,
+      editor: "select", // ★ select로 변경
+      // ★ options 추가: 직원 목록 데이터 사용
+      options: employees.map(emp => ({ value: emp.employeeId, label: `${emp.employeeNm} (${emp.employeeId})` }))
+    },
     { header: "검사 일시", accessor: "inspectionDate", editable: true, editor: "datetime" },
     {
       header: "검사 결과",
