@@ -126,19 +126,26 @@ export default function BlockPlan() {
     }
     };
 
+    // 진행률 계산 함수 추가
+    const calculateProgressRate = (blocks) => {
+        if (!blocks || blocks.length === 0) return 0;
+        const completed = blocks.filter((b) => b.status === 2).length;
+        return parseFloat(((completed / blocks.length) * 100).toFixed(1)); 
+    };
 
-  // --- 최초 로드 시 생산계획 불러오기 ---
-  useEffect(() => {
-    fetchProjectPlans();
-     fetchComboData();
-  }, []);
 
-  // --- 생산계획 선택 시 블록계획 조회 ---
-  useEffect(() => {
-    if (selectedProjectPlan) {
-      fetchBlockPlans(selectedProjectPlan.planId);
-    }
-  }, [selectedProjectPlan]);
+    // --- 최초 로드 시 생산계획 불러오기 ---
+    useEffect(() => {
+        fetchProjectPlans();
+        fetchComboData();
+    }, []);
+
+    // --- 생산계획 선택 시 블록계획 조회 ---
+    useEffect(() => {
+        if (selectedProjectPlan) {
+        fetchBlockPlans(selectedProjectPlan.planId);
+        }
+    }, [selectedProjectPlan]);
 
 
     // 아이콘 핸들러 등록
@@ -212,45 +219,64 @@ export default function BlockPlan() {
         setSelectedBlockPlan(blockPlan);
     };
 
-    // =저장 
+    // = 저장
     const handleSave = async () => {
-        if (!selectedBlockPlan) {
-            alert("저장할 블록 계획이 없습니다.");
-            return;
+    if (!selectedBlockPlan) {
+        alert("저장할 블록 계획이 없습니다.");
+        return;
+    }
+
+    // 필수값 체크
+    if (!selectedBlockPlan.startDate || !selectedBlockPlan.endDate) {
+        alert("시작일과 종료일을 입력하세요.");
+        return;
+    }
+
+    try {
+        // 신규 / 수정 구분
+        if (!selectedBlockPlan.blockPlanId) {
+        console.log("신규 등록 요청:", selectedBlockPlan);
+        await axios.post(API_URL, selectedBlockPlan);
+        alert("등록 완료");
+        } else {
+        await axios.put(`${API_URL}/${selectedBlockPlan.blockPlanId}`, selectedBlockPlan);
+        alert("수정 완료");
         }
 
-        // 필수값 체크 (startDate, endDate는 DB에서 NOT NULL)
-        if (!selectedBlockPlan.startDate || !selectedBlockPlan.endDate) {
-            alert("시작일과 종료일을 입력하세요.");
-            return;
+        // === 진행률 업데이트 ===
+        if (selectedProjectPlan?.planId) {
+        // 👉 프론트에서 즉시 진행률 계산
+        const newProgress = calculateProgressRate(
+            [...blockPlans].map((bp) =>
+            bp.blockPlanId === selectedBlockPlan.blockPlanId ? selectedBlockPlan : bp
+            )
+        );
+
+        // 👉 projectPlans 상태 갱신 (UI 즉시 반영)
+        setProjectPlans((prevPlans) =>
+            prevPlans.map((plan) =>
+            plan.planId === selectedProjectPlan.planId
+                ? { ...plan, progressRate: newProgress }
+                : plan
+            )
+        );
+
+        // 👉 ERP 동기화 (백그라운드)
+        await axios.put(
+            `${ProjectPlan_API_URL}/${selectedProjectPlan.planId}/progress`,
+            newProgress, 
+            { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+            )
+        console.log("ERP 진행률 업데이트 호출 완료:", newProgress);
         }
-        try {
-            // if (!selectedBlockPlan.blockPlanId) {
-            // // 신규 등록
-            // await axios.post(API_URL, selectedBlockPlan, {
-            //     headers: { "Content-Type": "application/json" }
-            // });
-            // alert("등록 완료");
-            // } else {
-            // // 수정
-            // await axios.put(`${API_URL}/${selectedBlockPlan.blockPlanId}`, selectedBlockPlan);
-            // alert("수정 완료");
-            // }
-            if (!selectedBlockPlan.blockPlanId) {
-            // 신규 등록
-            console.log("신규 등록 요청:", selectedBlockPlan);
-            await axios.post(API_URL, selectedBlockPlan);
-            alert("등록 완료");
-        } else {
-            // 수정
-            await axios.put(`${API_URL}/${selectedBlockPlan.blockPlanId}`, selectedBlockPlan);
-            alert("수정 완료");
-        }
-            await fetchBlockPlans(selectedProjectPlan?.planId);  // 목록 새로고침
-        } catch (err) {
-            console.error("저장 실패:", err);
-            alert("저장 실패: " + (err.response?.data?.message || err.message));
-        }
+
+        // 블록 목록 새로고침 (UI 정확성 유지)
+        await fetchBlockPlans(selectedProjectPlan?.planId);
+
+    } catch (err) {
+        console.error("저장 실패:", err);
+        alert("저장 실패: " + (err.response?.data?.message || err.message));
+    }
     };
 
     // 삭제 
