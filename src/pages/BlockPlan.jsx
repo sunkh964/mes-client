@@ -262,11 +262,18 @@ export default function BlockPlan() {
         );
 
         // 👉 ERP 동기화 (백그라운드)
-        await axios.put(
-            `${ProjectPlan_API_URL}/${selectedProjectPlan.planId}/progress`,
-            newProgress, 
-            { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-            )
+        // await axios.put(
+        //     `${ProjectPlan_API_URL}/${selectedProjectPlan.planId}/progress`,
+        //     newProgress, 
+        //     { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        //     )
+        console.log(selectedProjectPlan.planId);
+        console.log(`${ProjectPlan_API_URL}`);
+        console.log(`${selectedProjectPlan.planId}`);
+        // await axios.put(
+        //     `${ProjectPlan_API_URL}/${selectedProjectPlan.planId}/progress`
+        //     )
+            
         console.log("ERP 진행률 업데이트 호출 완료:", newProgress);
         }
 
