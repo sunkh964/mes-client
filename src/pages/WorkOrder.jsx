@@ -11,11 +11,31 @@ export default function WorkOrder() {
   const [editingRowId, setEditingRowId] = useState(null);
 
   // 콤보박스 데이터 상태
+  const [blockPlanList, setBlockPlanList] = useState([]);
   const [processList, setProcessList] = useState([]);
   const [blockList, setBlockList] = useState([]);
   const [workCenterList, setWorkCenterList] = useState([]);
   const [equipmentList, setEquipmentList] = useState([]);
   const [employeeList, setEmployeeList] = useState([]);
+
+  // 정렬 상태
+  const [selectedBlockPlanId, setSelectedBlockPlanId] = useState("");
+  const [selectedProcessId, setSelectedProcessId] = useState("");
+  const [selectedBlockId, setSelectedBlockId] = useState("");
+
+  // 블록생산계획 / 공정 / 블록 기준 필터링
+  const filteredWorkOrders = workOrders.filter((wo) => {
+    const matchBlockPlan =
+      !selectedBlockPlanId ||
+      String(wo.blockPlanId) === String(selectedBlockPlanId);
+    const matchProcess =
+      !selectedProcessId ||
+      String(wo.processId) === String(selectedProcessId);
+    const matchBlock =
+      !selectedBlockId || String(wo.blockId) === String(selectedBlockId);
+
+    return matchBlockPlan && matchProcess && matchBlock;
+  });
 
   // 검색 조건
   const initialSearchParams = {
@@ -40,7 +60,7 @@ export default function WorkOrder() {
       });
       setWorkOrders(response.data);
       if (response.data.length > 0) {
-        setSelectedWorkOrder(response.data[0]); // 첫 번째 행 자동 선택
+        setSelectedWorkOrder(response.data[0]); // ✅ 첫 번째 행 자동 선택
       }
     } catch (error) {
       console.error("작업지시 데이터 조회 실패:", error);
@@ -53,29 +73,31 @@ export default function WorkOrder() {
   const fetchComboData = async () => {
     try {
       const token = localStorage.getItem("token");
+
       const headers = { Authorization: `Bearer ${token}` };
-      const [procRes, blockRes, wcRes, eqRes, empRes] = await Promise.all([
+      const [
+        blockPlanRes,procRes, blockRes, wcRes, eqRes, empRes
+        ] = await Promise.all([
+        axios.get("http://localhost:8082/api/workOrders/blockPlans", { headers }),
         axios.get("http://localhost:8082/api/workOrders/processes", { headers }),
         axios.get("http://localhost:8082/api/workOrders/blocks", { headers }),
         axios.get("http://localhost:8082/api/workOrders/workCenters", { headers }),
         axios.get("http://localhost:8082/api/workOrders/equipments", { headers }),
         axios.get("http://localhost:8082/api/workOrders/employees", { headers }),
       ]);
+      console.log("✅ blockPlanList 응답:", blockPlanRes.data);
 
+      setBlockPlanList(blockPlanRes.data);
       setProcessList(procRes.data);
       setBlockList(blockRes.data);
       setWorkCenterList(wcRes.data);
       setEquipmentList(eqRes.data);
       setEmployeeList(empRes.data);
 
-      console.log("equipmentList 응답:", eqRes.data);
     } catch (err) {
       console.error("콤보박스 데이터 불러오기 실패:", err);
     }
   };
-  useEffect(() => {
-  console.log("workCenterList:", workCenterList);
-}, [workCenterList]);
 
   // ================= 검색 =================
   const handleSearch = async () => {
@@ -94,13 +116,27 @@ export default function WorkOrder() {
   const handleNew = () => {
     if (workOrders.some((wo) => wo._isNew)) return; // 이미 신규행 있으면 추가 안 함
 
+    // 블록생산계획 목록 중 첫 번째 항목을 기본값으로 설정
+    const defaultBlockPlan = blockPlanList.length > 0 ? blockPlanList[0] : null;
+    const defaultProcessId = defaultBlockPlan?.processId || "";
+    const defaultBlockId = defaultBlockPlan?.blockId || "";
+
+    const defaultWorkCenter = workCenterList.find(
+      (wc) => wc.processId === defaultProcessId
+    ) || null;
+
+    const defaultEquipment = equipmentList.find(
+      (eq) => eq.workCenterId === defaultWorkCenter?.workCenterId
+    ) || null;
+
+    // 신규행 생성
     const newRow = {
-      workOrderId: `temp-${Date.now()}-${Math.random()}`, // ✅ 고유 ID
-      processId: "",
-      blockPlanId: "",
-      blockId: "",
-      workCenterId: null, // "" 대신 null
-      equipmentId: null,
+      workOrderId: `TEMP-${Date.now()}`,
+      blockPlanId: defaultBlockPlan ? defaultBlockPlan.blockPlanId : "",
+      blockId: defaultBlockId,
+      processId: defaultProcessId,
+      workCenterId: defaultWorkCenter ? defaultWorkCenter.workCenterId : null,
+      equipmentId: defaultEquipment ? defaultEquipment.equipmentId : null,
       employeeId: "",
       instruction: "",
       quantityToProduce: 0,
@@ -115,7 +151,15 @@ export default function WorkOrder() {
       _isNew: true,
     };
 
-    setWorkOrders((prev) => [...prev, newRow]);
+    setWorkOrders((prev) => {
+      const updated = [...prev, newRow];
+      // 테이블 업데이트 직후 자동 세팅 로직 반영
+      setTimeout(() => {
+        const newIndex = updated.length - 1;
+        handleCellUpdate(newIndex, "blockPlanId", newRow.blockPlanId);
+      }, 0);
+      return updated;
+    });
     setSelectedWorkOrder(newRow);
     setEditingRowId(newRow.workOrderId);
   };
@@ -137,7 +181,7 @@ export default function WorkOrder() {
       return;
     }
 
-    // ✅ "" → null 변환
+    // "" → null 변환
     const payload = {
       ...selectedWorkOrder,
       processId: selectedWorkOrder.processId || null,
@@ -148,27 +192,23 @@ export default function WorkOrder() {
       employeeId: selectedWorkOrder.employeeId || null,
     };
 
-    // ✅ 필수값 검증
+    // 필수값 검증
     if (!payload.processId || !payload.blockId || !payload.workCenterId) {
       alert("공정, 블록, 작업장은 필수 선택 항목입니다.");
       return;
     }
 
-    try {
-      if (selectedWorkOrder._isNew || selectedWorkOrder.workOrderId.startsWith("temp-")) {
-        // 신규 → POST
-        await axios.post(API_URL, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+  try {
+      const token = localStorage.getItem("token");
+      if (selectedWorkOrder._isNew) {
+        await axios.post(API_URL, payload, { headers: { Authorization: `Bearer ${token}` } });
         alert("신규 작업지시 등록 완료!");
       } else {
-        // 기존 → PUT
         await axios.put(`${API_URL}/${selectedWorkOrder.workOrderId}`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         alert("작업지시 수정 완료!");
       }
-
       await fetchWorkOrders();
       setEditingRowId(null);
     } catch (err) {
@@ -202,6 +242,10 @@ export default function WorkOrder() {
   // ================= 초기화 =================
   const handleReset = () => {
     setSearchParams(initialSearchParams);
+    
+    setSelectedBlockPlanId("");
+    setSelectedProcessId("");
+    setSelectedBlockId("");
     fetchWorkOrders();
   };
 
@@ -233,30 +277,28 @@ export default function WorkOrder() {
     fetchComboData();
   }, []);
 
-  useEffect(() => {
-  console.log("현재 workOrders:", workOrders);
-  if (workOrders.length > 0) {
-    console.log("첫 번째 행:", workOrders[0]);
-  }
-}, [workOrders]);
-
 
   // ================= 컬럼 정의 =================
   const columns = [
-    { header: "블록 생산계획 ID", accessor: "blockPlanId", editable: true },
+    {
+      header: "블록 생산계획 ID",
+      accessor: "blockPlanId",
+      editable: true,
+      editor: "select",
+      options: blockPlanList.map((bp) => ({
+        value: bp.blockPlanId,
+        label: `${bp.blockPlanId} (${bp.blockNm})`,
+      })),
+    },
     {
       header: "블록 ID",
       accessor: "blockId",
-      editable: true,
-      editor: "select",
-      options: blockList.map((b) => ({ value: b.blockId, label: `${b.blockId} (${b.blockNm})` })),
+      editable: false, // 읽기 전용
     },
     {
       header: "공정 ID",
       accessor: "processId",
-      editable: true,
-      editor: "select",
-      options: processList.map((p) => ({ value: p.processId, label: `${p.processId} (${p.processNm})` })),
+      editable: false, // 읽기 전용
     },
     {
       header: "작업장",
@@ -289,7 +331,7 @@ export default function WorkOrder() {
       accessor: "employeeId",
       editable: true,
       editor: "select",
-      options: employeeList.map((emp) => ({ value: emp.employeeId, label: emp.employeeNm })),
+      options: employeeList.map((emp) => ({ value: emp.employeeId, label: `${emp.employeeNm} (${emp.employeeId})`})),
     },
     {
       header: "우선순위",
@@ -311,6 +353,71 @@ export default function WorkOrder() {
     },
     { header: "비고", accessor: "remark", editable: true },
   ];
+
+    // ================= onCellUpdate =================
+  const handleCellUpdate = (rowIndex, field, value) => {
+    console.log("🧩 handleCellUpdate 호출됨:", { rowIndex, field, value, type: typeof field });
+    setWorkOrders((prev) =>
+      prev.map((wo, i) => {
+        if (i !== rowIndex) return wo;
+
+        const updated = { ...wo, [field]: value };
+
+        // 1 블록생산계획 선택 시 자동 세팅
+        if (field === "blockPlanId") {
+          const selected = blockPlanList.find(
+            (bp) => String(bp.blockPlanId) === String(value)
+          );
+
+          if (selected) {
+            updated.blockId = selected.blockId;
+            updated.processId = selected.processId;
+
+            // 공정 관련 작업장, 설비도 다시 세팅
+            const availableWCs = workCenterList.filter(
+              (w) => w.processId === selected.processId
+            );
+            updated.workCenterId =
+              availableWCs.length > 0 ? availableWCs[0].workCenterId : null;
+
+            const availableEqs = equipmentList.filter(
+              (e) => e.workCenterId === updated.workCenterId
+            );
+            updated.equipmentId =
+              availableEqs.length > 0 ? availableEqs[0].equipmentId : null;
+
+            console.log(" 블록생산계획 변경 → 공정/작업장/설비 자동 세팅:", updated);
+          } else {
+            console.warn("⚠️ blockPlanList에서 매칭되는 항목을 찾지 못했습니다. value:", value);
+          }
+        }
+
+        // 2 공정 선택 시 자동 작업장 세팅
+        if (field === "processId") {
+          const availableWCs = workCenterList.filter((w) => w.processId === value);
+          updated.workCenterId =
+            availableWCs.length > 0 ? availableWCs[0].workCenterId : null;
+
+          const availableEqs = equipmentList.filter(
+            (e) => e.workCenterId === updated.workCenterId
+          );
+          updated.equipmentId =
+            availableEqs.length > 0 ? availableEqs[0].equipmentId : null;
+        }
+
+        // 3 작업장 변경 시 설비 초기화
+        if (field === "workCenterId") {
+          const availableEqs = equipmentList.filter(
+            (e) => e.workCenterId === value
+          );
+          updated.equipmentId =
+            availableEqs.length > 0 ? availableEqs[0].equipmentId : null;
+        }
+
+        return updated;
+      })
+    );
+  };
 
   // ================= 더블클릭 수정 =================
   const handleRowDoubleClick = (row) => {
@@ -401,36 +508,83 @@ export default function WorkOrder() {
 
       {/* ================= 목록 ================= */}
       <h2 className="mb-2 text-lg font-semibold">작업지시 목록</h2>
+
+      {/* 블록생산계획 / 공정 / 블록 필터 */}
+      <div className="flex items-center gap-4 mb-3">
+        {/* 블록생산계획 */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="blockPlanFilter" className="text-sm font-medium">
+            블록생산계획:
+          </label>
+          <select
+            id="blockPlanFilter"
+            value={selectedBlockPlanId}
+            onChange={(e) => setSelectedBlockPlanId(e.target.value)}
+            className="border border-gray-400 px-2 py-1 text-sm rounded"
+          >
+            <option value="">전체</option>
+            {blockPlanList
+              .slice() // 원본 배열 훼손 방지용
+              .sort((a, b) => Number(a.blockPlanId) - Number(b.blockPlanId))
+              .map((bp) => (
+                <option key={bp.blockPlanId} value={bp.blockPlanId}>
+                  {bp.blockPlanId}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        {/* 공정 필터 */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="processFilter" className="text-sm font-medium">
+            공정:
+          </label>
+          <select
+            id="processFilter"
+            value={selectedProcessId}
+            onChange={(e) => setSelectedProcessId(e.target.value)}
+            className="border border-gray-400 px-2 py-1 text-sm rounded"
+          >
+            <option value="">전체</option>
+            {processList.map((proc) => (
+              <option key={proc.processId} value={proc.processId}>
+                {proc.processId} ({proc.processNm})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 블록 필터 */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="blockFilter" className="text-sm font-medium">
+            블록:
+          </label>
+          <select
+            id="blockFilter"
+            value={selectedBlockId}
+            onChange={(e) => setSelectedBlockId(e.target.value)}
+            className="border border-gray-400 px-2 py-1 text-sm rounded"
+          >
+            <option value="">전체</option>
+            {blockList.map((blk) => (
+              <option key={blk.blockId} value={blk.blockId}>
+                {blk.blockId} ({blk.blockNm})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="overflow-y-auto h-[500px] border border-gray-300">
         <TableGrid
           columns={columns}
-          data={workOrders}
+          data={filteredWorkOrders} 
           rowKey="workOrderId"
           selectedRow={selectedWorkOrder}
           onRowSelect={setSelectedWorkOrder}
           onCellUpdate={(rowIndex, field, value) => {
-            console.log("셀 업데이트:", field, value);
-            setWorkOrders((prev) =>
-              prev.map((wo, i) => {
-                if (i !== rowIndex) return wo;
-
-                const updated = { ...wo, [field]: value };
-
-                // ✅ 공정 선택 시 → 해당 공정의 첫 작업장 자동 세팅
-                if (field === "processId") {
-                  const availableWCs = workCenterList.filter((w) => w.processId === value);
-                  updated.workCenterId = availableWCs.length > 0 ? availableWCs[0].workCenterId : null;
-                  updated.equipmentId = ""; // 설비 초기화
-                }
-
-                // ✅ 작업장 선택 변경 시 → 설비 초기화
-                if (field === "workCenterId") {
-                  updated.equipmentId = "";
-                }
-
-                return updated;
-              })
-            );
+            console.log("* onCellUpdate 실행됨:", { rowIndex, field, value });
+            handleCellUpdate(rowIndex, field, value);
           }}
           readOnly={false}
           editingRowId={editingRowId}
