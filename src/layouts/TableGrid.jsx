@@ -51,19 +51,11 @@ export default function TableGrid({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data.length === 0 ? (
-            <tr>
-              <td
-                colSpan={columns.length + 1}
-                className="px-6 py-2.5 text-center text-sm text-gray-500"
-              >
-                데이터가 없습니다.
-              </td>
-            </tr>
-          ) : (
+          {data && data.length > 0 ? (
+            // ✅ 기존과 동일하게 데이터가 있을 때 행 렌더링
             data.map((row, rowIndex) => (
               <tr
-                key={row[rowKey] || rowIndex}
+                key={row[rowKey] || `new-${rowIndex}`}
                 onClick={() => onRowSelect?.(row)}
                 onDoubleClick={() => onRowDoubleClick?.(row)}
                 className={`cursor-pointer 
@@ -72,8 +64,7 @@ export default function TableGrid({
                     selectedRow?.[rowKey] === row[rowKey]
                       ? "bg-blue-100"
                       : "hover:bg-gray-50"
-                  }
-                `}
+                  }`}
               >
                 <td className="px-6 py-2.5 text-sm font-medium text-gray-900">
                   {rowIndex + 1}
@@ -85,54 +76,29 @@ export default function TableGrid({
                     (alwaysEditable || editingRowId === row[rowKey]);
 
                   return (
-                    <td
-                      key={col.accessor}
-                      className="px-6 py-2.5 text-sm text-gray-700"
-                    >
+                    <td key={col.accessor} className="px-6 py-2.5 text-sm text-gray-700">
                       {isEditing ? (
                         col.editor === "select" ? (
                           <select
                             value={row[col.accessor] ?? ""}
-                            onChange={(e) => {
-                              console.log("변경됨:", col.accessor, e.target.value);
-                              onCellUpdate?.(rowIndex, col.accessor, e.target.value);
-                            }}
-                            className="w-full bg-white outline-none border border-none px-2 py-1 text-sm"
-                          >
-                            {(col.getOptions ? col.getOptions(row) : col.options)?.map((opt) =>
-                              typeof opt === "object" ? (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              ) : (
-                                <option key={opt} value={opt}>
-                                  {opt}
-                                </option>
-                              )
-                            )}
-                          </select>
-                        ) : col.editor === "number" ? (
-                          <input
-                            type="number"
-                            value={row[col.accessor] ?? 0}
-                            onChange={(e) =>
-                              onCellUpdate?.(
-                                rowIndex,
-                                col.accessor,
-                                e.target.value === "" ? null : Number(e.target.value)
-                              )
-                            }
-                            className="w-full bg-white outline-none border border-none px-2 py-1 text-sm text-right"
-                          />
-                        ) : col.editor === "datetime" ? (
-                          <input
-                            type="datetime-local"
-                            value={formatDateTimeLocal(row[col.accessor])}
                             onChange={(e) =>
                               onCellUpdate?.(rowIndex, col.accessor, e.target.value)
                             }
                             className="w-full bg-white outline-none border border-none px-2 py-1 text-sm"
-                          />
+                          >
+                            {(col.getOptions ? col.getOptions(row) : col.options)?.map(
+                              (opt) =>
+                                typeof opt === "object" ? (
+                                  <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </option>
+                                ) : (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                )
+                            )}
+                          </select>
                         ) : (
                           <input
                             type="text"
@@ -151,6 +117,18 @@ export default function TableGrid({
                 })}
               </tr>
             ))
+          ) : (
+            // ✅ 여기 수정됨: 신규행(_isNew)이 하나라도 있으면 문구 숨김
+            (!data.some?.((d) => d._isNew)) && (
+              <tr>
+                <td
+                  colSpan={columns.length + 1}
+                  className="px-6 py-2.5 text-center text-sm text-gray-500"
+                >
+                  데이터가 없습니다.
+                </td>
+              </tr>
+            )
           )}
         </tbody>
       </table>

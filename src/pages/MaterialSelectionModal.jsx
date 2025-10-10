@@ -21,13 +21,6 @@ export default function MaterialSelectionModal({ materials, onClose, onConfirm }
 
   // TableGrid 컬럼 정의
   const columns = [
-    
-    { header: "자재명", accessor: "materialNm" },
-    { header: "규격", accessor: "specification" },
-    {
-      header: "현재고",
-      accessor: "onHand",
-    },
     {
       header: "✔",
       accessor: "checkbox",
@@ -39,6 +32,14 @@ export default function MaterialSelectionModal({ materials, onClose, onConfirm }
         />
       ),
     },
+    { header: "자재 코드", accessor: "materialCode" },
+    { header: "자재명", accessor: "materialNm" },
+    { header: "규격", accessor: "specification" },
+    {
+      header: "현재고",
+      accessor: "onHand",
+    },
+    
   ];
 
   return (
@@ -56,16 +57,16 @@ export default function MaterialSelectionModal({ materials, onClose, onConfirm }
           backgroundColor: "white",
           padding: "20px",
           borderRadius: "8px",
-          width: "700px",
+          width: "800px",
           maxHeight: "80vh",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <h2 style={{ marginBottom: "20px" }}>자재 선택</h2>
+        <h2 className="ml-2 mb-2 font-semibold">✔ 자재 목록</h2>
 
         {/* TableGrid 적용 */}
-        <div style={{ flex: 1, overflowY: "auto", marginBottom: "20px" }}>
+        <div style={{ flex: 1, overflowY: "auto", marginBottom: "10px" }}>
           <TableGrid
             columns={columns}
             data={materials}
