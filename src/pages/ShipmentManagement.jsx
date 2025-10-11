@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api/shipments';
+const API_URL = 'http://localhost:8082/api/shipments';
 
 const formatDateTime = (dateTimeString) => {
   if (!dateTimeString) return '-';

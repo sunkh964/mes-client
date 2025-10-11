@@ -43,7 +43,7 @@ export default function BlockPlan() {
     
   // TableGrid 컬럼
   const columns = [
-    { header: "블록 계획 ID", accessor: "blockPlanId" },
+    { header: "블록생산계획 ID", accessor: "blockPlanId" },
     { header: "블록명", accessor: "blockNm" },
     { header: "공정명", accessor: "processNm" },
     { 

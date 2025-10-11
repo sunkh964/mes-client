@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState} from "react";
 import axios from "axios";
 import { useIconContext } from "../utils/IconContext";
 import TableGrid from "../layouts/TableGrid";
@@ -17,6 +17,8 @@ export default function WorkOrder() {
   const [workCenterList, setWorkCenterList] = useState([]);
   const [equipmentList, setEquipmentList] = useState([]);
   const [employeeList, setEmployeeList] = useState([]);
+
+  const [isComboLoading, setIsComboLoading] = useState(true);
 
   // 정렬 상태
   const [selectedBlockPlanId, setSelectedBlockPlanId] = useState("");
@@ -71,6 +73,7 @@ export default function WorkOrder() {
 
   // ================= 콤보 데이터 =================
   const fetchComboData = async () => {
+    setIsComboLoading(true);
     try {
       const token = localStorage.getItem("token");
 
@@ -96,6 +99,10 @@ export default function WorkOrder() {
 
     } catch (err) {
       console.error("콤보박스 데이터 불러오기 실패:", err);
+    } finally {
+    
+      setIsComboLoading(false);
+    
     }
   };
 
@@ -201,8 +208,9 @@ export default function WorkOrder() {
   try {
       const token = localStorage.getItem("token");
       if (selectedWorkOrder._isNew) {
-        await axios.post(API_URL, payload, { headers: { Authorization: `Bearer ${token}` } });
-        alert("신규 작업지시 등록 완료!");
+        const { workOrderId, _isNew, ...payloadForServer } = payload;
+        await axios.post(API_URL, payloadForServer, { headers: { Authorization: `Bearer ${token}` } });
+      alert("신규 작업지시 등록 완료!");
       } else {
         await axios.put(`${API_URL}/${selectedWorkOrder.workOrderId}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
@@ -262,6 +270,7 @@ export default function WorkOrder() {
       onSave: handleSave,
       onDelete: handleDelete,
     });
+
     return () =>
       setIconHandlers({
         onSearch: null,
@@ -273,15 +282,19 @@ export default function WorkOrder() {
 
   // 최초 로딩 시 불러오기
   useEffect(() => {
-    fetchWorkOrders();
-    fetchComboData();
+    const fetchAllData = async () => {
+        // 콤보 데이터를 먼저 불러오고, 로딩이 끝나면 작업지시 목록을 불러옵니다.
+        await fetchComboData();
+        await fetchWorkOrders();
+    };
+    fetchAllData();
   }, []);
 
 
   // ================= 컬럼 정의 =================
   const columns = [
     {
-      header: "블록 생산계획 ID",
+      header: "블록생산계획 ID",
       accessor: "blockPlanId",
       editable: true,
       editor: "select",
@@ -573,6 +586,8 @@ export default function WorkOrder() {
             ))}
           </select>
         </div>
+
+        
       </div>
 
       <div className="overflow-y-auto h-[500px] border border-gray-300">

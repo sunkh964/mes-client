@@ -1,5 +1,5 @@
 // src/pages/WorkResults.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useIconContext } from '../utils/IconContext';
 import axios from 'axios';
 import TableGrid from '../layouts/TableGrid';
@@ -10,17 +10,18 @@ const WORK_RESULT_API_URL = "http://localhost:8082/api/work-results";
 const formatDateTime = (dateTime) => {
   if (!dateTime) return "-";
   try {
-    // "2025-09-23T12:23:22.929" → "2025-09-23 12:23:22.929"
-    const normalized = dateTime.replace("T", " ");
-    const dt = new Date(normalized);
+    // ✅ 1. 'T'를 공백으로 바꾸는 코드를 제거하고, 표준 형식 그대로 Date 객체를 만듭니다.
+    const dt = new Date(dateTime);
     if (isNaN(dt.getTime())) return "-";
+
+    // ✅ 2. toLocaleString은 new Date()가 UTC로 해석한 시간을 자동으로 한국 시간으로 변환해줍니다.
     return dt.toLocaleString("ko-KR", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit", // 초는 보통 생략하여 더 깔끔하게 보입니다.
       hour12: false,
     });
   } catch {
@@ -33,8 +34,8 @@ const formatDateTime = (dateTime) => {
 const calculateTotalTime = (start, end) => {
   if (!start || !end) return null;
 
-  const startDate = new Date(start.replace("T", " "));
-  const endDate = new Date(end.replace("T", " "));
+  const startDate = new Date(start);
+  const endDate = new Date(end);
 
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return null;
 
@@ -43,7 +44,12 @@ const calculateTotalTime = (start, end) => {
   return `${minutes}분`;   // ← 항상 "n분"으로 표시
 };
 
-
+// 상태 옵션
+const statusOptions = [
+    { value: "in_progress", label: "진행 중" },
+    { value: "completed", label: "완료" },
+    { value: "paused", label: "일시정지" },
+];
 
 
 export default function WorkResults() {
@@ -55,6 +61,8 @@ export default function WorkResults() {
   const [filters, setFilters] = useState({ workOrderId: '', employeeId: '', status: '' }); // 검색 필터 값
 
   const { setIconHandlers } = useIconContext(); // 상단 아이콘 버튼과 연동하기 위한 함수
+
+  const [editingRowId, setEditingRowId] = useState(null);  // '편집 중인 행 ID' 상태.
 
   // --- 2. 데이터 조회 함수 ---
   // 백엔드 API로부터 작업 실적 데이터를 가져오는 함수입니다.
@@ -69,6 +77,7 @@ export default function WorkResults() {
         Object.entries(currentFilters).filter(([_, value]) => value !== '' && value !== null)
       );
       const response = await axios.get(WORK_RESULT_API_URL, { params });
+      console.log("✅백엔드에서 받은 Raw 데이터:", response.data);
       setResults(response.data);
     } catch (e) {
       setError(e);
@@ -91,6 +100,38 @@ export default function WorkResults() {
     fetchResults(filters);
   }, [filters, fetchResults]);
 
+  // 더블 클릭 시, 해당 행을 '편집 모드'로 전환하는 함수
+  const handleRowDoubleClick = (result) => {
+        setEditingRowId(result.resultId);
+  };
+
+  // 화면의 데이터(state)만 변경하는 역할
+  const handleCellUpdate = (rowIndex, field, value) => {
+    setResults(prev => prev.map((row, index) =>
+        (index === rowIndex ? { ...row, [field]: value } : row)
+    ));
+  };
+
+  const handleSave = useCallback(async () => {
+        if (!editingRowId) {
+            alert("수정 중인 항목이 없습니다.");
+            return;
+        }
+
+        // 현재 편집 중인 행의 최신 데이터를 results state에서 찾습니다.
+        const resultToSave = results.find(r => r.resultId === editingRowId);
+        if (!resultToSave) return;
+
+        try {
+            await axios.put(`${WORK_RESULT_API_URL}/${resultToSave.resultId}`, resultToSave);
+            alert("변경사항이 성공적으로 저장되었습니다.");
+            setEditingRowId(null); // 저장 후 편집 모드 종료
+        } catch (err) {
+            console.error("저장 실패:", err);
+            alert("저장 중 오류가 발생했습니다: " + (err.response?.data?.message || err.message));
+        }
+    }, [editingRowId, results]); 
+
   // --- 4. 사이드 이펙트 (Side Effects) ---
   // 렌더링 후 특정 작업을 수행해야 할 때 사용합니다. (주로 데이터 fetching, 아이콘 버튼 연동)
 
@@ -101,15 +142,18 @@ export default function WorkResults() {
 
   // 상단 아이콘 버튼에 이 컴포넌트의 검색 기능을 연결합니다.
   useEffect(() => {
-    setIconHandlers({ onSearch: handleSearch });
-    return () => { // 컴포넌트가 사라질 때 연결을 해제합니다.
-      setIconHandlers({ onSearch: null });
+    setIconHandlers({
+        onSearch: handleSearch,
+        onSave: handleSave, // ✅ onSave 이벤트에 handleSave 함수 연결
+    });
+    return () => {
+        setIconHandlers({ onSearch: null, onSave: null });
     };
-  }, [handleSearch, setIconHandlers]);
+  }, [handleSearch, handleSave, setIconHandlers]);
 
   
   // ================= 컬럼 정의 =================
-  const columns = [
+  const columns = useMemo(() => [
     { header: "실적ID", accessor: "resultId" },
     { header: "작업지시ID", accessor: "workOrderId" },
     { header: "작업자", accessor: "employeeId" },
@@ -120,11 +164,22 @@ export default function WorkResults() {
     {
       header: "총 작업시간",
       accessor: "totalTime",
-      render: (_, row) => calculateTotalTime(row.startTime, row.endTime) ?? "-"
+      // render 함수의 첫 번째 인자는 cell의 값(accessor)이므로, row 전체를 받으려면 두 번째 인자를 사용해야 합니다.
+      render: (cellValue, row) => {
+          // 디버깅을 위해 콘솔에 값을 출력해봅니다.
+          // console.log("시간 계산 입력값:", { start: row.startTime, end: row.endTime });
+          return calculateTotalTime(row.startTime, row.endTime) ?? "-";
+      }
     },
-    { header: "상태", accessor: "status" },
+    {
+      header: "상태",
+      accessor: "status",
+      editable: true,       // 이 컬럼을 편집 가능하도록 설정
+      editor: 'select',     // 편집 도구를 'select' (콤보박스)로 지정
+      options: statusOptions, // 콤보박스의 선택 옵션들
+    },
     { header: "비고", accessor: "remark" },
-  ];
+  ], []);
 
   // --- 5. 렌더링 ---
   // 계산된 상태값들을 바탕으로 실제 화면(UI)을 그립니다.
@@ -160,7 +215,11 @@ export default function WorkResults() {
         columns={columns}
         data={results}
         rowKey="resultId"
-        readOnly={true} // 조회 전용
+        readOnly={false} // 전체 그리드를 읽기 전용이 아닌, 편집 가능 상태로 변경
+        editingRowId={editingRowId} // 현재 편집 중인 행의 ID를 전달
+        onRowDoubleClick={handleRowDoubleClick} // 더블 클릭 이벤트 핸들러 연결
+        onCellUpdate={handleCellUpdate} // 셀 업데이트 이벤트 핸들러 연결
+        getRowClassName={(row) => editingRowId === row.resultId ? "bg-yellow-100" : ""} // 편집 중인 행 강조
       />
     </div>
   );
