@@ -53,9 +53,9 @@ export default function BlockQC() {
 
     const newRow = {
       blockQCId: null,
-      workOrderId: "",
-      blockId: "",
-      employeeId: "",
+      workOrderId: "1",
+      blockId: "7",
+      employeeId: "250812501001",
       inspectionDate: "",
       result: "PENDING",
       passQuantity: 0,
@@ -150,7 +150,7 @@ export default function BlockQC() {
   // ================= 컬럼 정의 =================
   const columns = [
     { header: "블록품질 ID", accessor: "blockQCId" },
-    { header: "작업지시 ID", accessor: "workOrderId", editable: true },
+    { header: "작업지시 ID", accessor: "workOrderId", editable: true},
     { header: "블록 ID", accessor: "blockId", editable: true },
     { header: "작업자 ID", accessor: "employeeId", editable: true },
     { header: "검사 일시", accessor: "inspectionDate", editable: true, editor: "datetime" },

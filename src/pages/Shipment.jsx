@@ -275,7 +275,7 @@ export default function Shipment() {
               className="border px-2 py-1 text-sm w-32"
             >
               <option value="">전체</option>
-              <option value="0">계획</option>
+              <option value="0">준비</option>
               <option value="1">출하</option>
               <option value="2">인도완료</option>
               <option value="3">취소</option>
@@ -313,6 +313,7 @@ export default function Shipment() {
               <label className="font-semibold block mb-1">출하번호</label>
               <input
                 type="text"
+                placeholder="SH-270520-01"
                 value={selectedShipment.shipmentId || ""}
                 readOnly={!selectedShipment._isNew}  // 신규일 때만 수정 가능
                 onChange={(e) => updateShipmentField("shipmentId", e.target.value)}
@@ -326,7 +327,7 @@ export default function Shipment() {
                 onChange={(e) => updateShipmentField("status", Number(e.target.value))}
                 className="border px-2 py-1 w-full"
               >
-                <option value={0}>계획</option>
+                <option value={0}>준비</option>
                 <option value={1}>출하</option>
                 <option value={2}>인도완료</option>
                 <option value={3}>취소</option>
@@ -336,6 +337,7 @@ export default function Shipment() {
               <label className="font-semibold block mb-1">수주번호</label>
               <input
                 type="text"
+                placeholder="SO-250711-01"
                 value={selectedShipment.salesOrderId || ""}
                 onChange={(e) => updateShipmentField("salesOrderId", e.target.value)}
                 className="border px-2 py-1 w-full"
@@ -345,6 +347,7 @@ export default function Shipment() {
               <label className="font-semibold block mb-1">고객번호</label>
               <input
                 type="text"
+                placeholder="CUSTUS001"
                 value={selectedShipment.customerId || ""}
                 onChange={(e) => updateShipmentField("customerId", e.target.value)}
                 className="border px-2 py-1 w-full"
@@ -354,6 +357,7 @@ export default function Shipment() {
               <label className="font-semibold block mb-1">선박코드</label>
               <input
                 type="text"
+                placeholder="BC-US01-01"
                 value={selectedShipment.vesselId || ""}
                 onChange={(e) => updateShipmentField("vesselId", e.target.value)}
                 className="border px-2 py-1 w-full"
