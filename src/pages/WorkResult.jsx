@@ -154,7 +154,7 @@ export default function WorkResults() {
   
   // ================= 컬럼 정의 =================
   const columns = useMemo(() => [
-    { header: "실적ID", accessor: "resultId" },
+    { header: "작업내역ID", accessor: "resultId" },
     { header: "작업지시ID", accessor: "workOrderId" },
     { header: "작업자", accessor: "employeeId" },
     { header: "합격품", accessor: "completedQuantity" },

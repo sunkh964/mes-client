@@ -70,11 +70,11 @@ export default function MaterialQC() {
 
     const newRow = {
       qcId: null,
-      purchaseOrderId: "",
-      orderDetailId: "",
-      workOrderId: "",
-      materialId: "",
-      inspectorId: "",
+      purchaseOrderId: "PO-20251013-001",
+      orderDetailId: "1",
+      workOrderId: "1",
+      materialId: "1",
+      inspectorId: "250812501001",
       inspectionDate: "",
       result: "PENDING",
       passQuantity: 0,
@@ -176,7 +176,7 @@ export default function MaterialQC() {
       editable: true, 
       editor: "text"
     },
-    { header: "발주 상세 ID", accessor: "orderDetailId", editable: true, editor: "text" },
+    { header: "발주 상세 ID", accessor: "orderDetailId", editable: true, editor: "text"},
     { header: "작업지시 ID", accessor: "workOrderId", editable: true, editor: "text" },
     { header: "자재 ID", accessor: "materialId", editable: true, editor: "text" },
     { 
