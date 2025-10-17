@@ -108,22 +108,29 @@ export default function BlockPlan() {
   };
 
     // --- 공정/블록 콤보박스 조회 ---
-    const fetchComboData = async () => {
-    try {
-        const token = localStorage.getItem("token");
-        const [procRes, blockRes] = await Promise.all([
-        axios.get(`${API_URL}/processes`, {
-            headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`${API_URL}/blocks`, {
-            headers: { Authorization: `Bearer ${token}` },
-        }),
-        ]);
-        setProcessList(procRes.data);
-        setBlockList(blockRes.data);
-    } catch (err) {
-        console.error("콤보박스 데이터 불러오기 실패:", err);
-    }
+    const fetchComboData = async (vesselId = null) => {
+        try {
+            const token = localStorage.getItem("token");
+            const [procRes, blockRes] = await Promise.all([
+            axios.get(`${API_URL}/processes`, {
+                headers: { Authorization: `Bearer ${token}` },
+            }),
+            axios.get(`${API_URL}/blocks`, {
+                headers: { Authorization: `Bearer ${token}` },
+            }),
+            ]);
+
+            setProcessList(procRes.data);
+
+            // 🚀 vesselId가 있으면 해당 선박의 블록만 필터링
+            const filteredBlocks = vesselId
+            ? blockRes.data.filter((b) => b.vesselId === vesselId)
+            : blockRes.data;
+
+            setBlockList(filteredBlocks);
+        } catch (err) {
+            console.error("콤보박스 데이터 불러오기 실패:", err);
+        }
     };
 
     // 진행률 계산 함수 추가
@@ -142,9 +149,10 @@ export default function BlockPlan() {
 
     // --- 생산계획 선택 시 블록계획 조회 ---
     useEffect(() => {
-        if (selectedProjectPlan) {
+    if (selectedProjectPlan) {
         fetchBlockPlans(selectedProjectPlan.planId);
-        }
+        fetchComboData(selectedProjectPlan.vesselId); // 🚀 선박 ID 기준으로 블록 재조회
+    }
     }, [selectedProjectPlan]);
 
 
